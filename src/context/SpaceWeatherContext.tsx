@@ -56,7 +56,7 @@ function getSolarModifier(activity: SolarActivity): number {
   }
 }
 
-function getOxygenModifier(temp: number): number {
+function calcOxygenModifier(temp: number): number {
   const deviation = Math.abs(temp - (-60)) / 60;
   return deviation * 0.05;
 }
@@ -114,7 +114,7 @@ export function SpaceWeatherProvider({ children }: { children: React.ReactNode }
   }, [data.solarActivity]);
 
   const getOxygenModifier = useCallback(() => {
-    return getOxygenModifier(data.marsTemperature);
+    return calcOxygenModifier(data.marsTemperature);
   }, [data.marsTemperature]);
 
   const getAlertMessage = useCallback((): string | null => {
