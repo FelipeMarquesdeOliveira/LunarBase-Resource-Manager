@@ -7,6 +7,7 @@ import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-na
 import { useTheme } from '@/context/ThemeContext';
 import { useResources } from '@/context/ResourcesContext';
 import { useResourceStats } from '@/hooks/useResourceStats';
+import { useSpaceWeather } from '@/context/SpaceWeatherContext';
 import { SectionHeader, ThemedText, CriticalityBadge } from '@/components';
 import { spacing } from '@/theme/spacing';
 import { classify, kindLabel } from '@/utils/criticality';
@@ -71,6 +72,7 @@ export default function DashboardScreen() {
   const { colors } = useTheme();
   const { resources, adjustResource } = useResources();
   const { overall, reorderList } = useResourceStats(resources);
+  const { data: sw, getAlertMessage } = useSpaceWeather();
   const router = useRouter();
   const [missionDay, setMissionDay] = useState(147);
 
@@ -125,9 +127,51 @@ export default function DashboardScreen() {
         </View>
       </AnimatedCard>
 
+      {/* Space Weather Panel */}
+      <AnimatedCard delay={50}>
+        <View style={[styles.spacePanel, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.spacePanelHeader}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+              <Ionicons name="planet" size={18} color={colors.secondary} />
+              <ThemedText variant="label" color="textMuted">SPACE WEATHER</ThemedText>
+            </View>
+            {sw.asteroidAlert && (
+              <View style={[styles.asteroidBadge, { backgroundColor: colors.danger + '22' }]}>
+                <Ionicons name="alert-circle" size={14} color={colors.danger} />
+                <ThemedText variant="caption" style={{ color: colors.danger }}>ASTEROID ALERT</ThemedText>
+              </View>
+            )}
+          </View>
+          <View style={styles.spacePanelGrid}>
+            <View style={styles.spacePanelItem}>
+              <ThemedText variant="label" color="textMuted">SOLAR</ThemedText>
+              <ThemedText variant="data" style={{ color: sw.solarActivity === 'extreme' ? colors.danger : sw.solarActivity === 'high' ? colors.warning : colors.success }}>{sw.solarActivity.toUpperCase()}</ThemedText>
+            </View>
+            <View style={styles.spacePanelItem}>
+              <ThemedText variant="label" color="textMuted">MARS</ThemedText>
+              <ThemedText variant="data" style={{ color: colors.text }}>{sw.marsTemperature}C</ThemedText>
+            </View>
+            <View style={styles.spacePanelItem}>
+              <ThemedText variant="label" color="textMuted">NEOS</ThemedText>
+              <ThemedText variant="data" style={{ color: sw.asteroidAlert ? colors.danger : colors.text }}>{sw.asteroidCount}</ThemedText>
+            </View>
+            <View style={styles.spacePanelItem}>
+              <ThemedText variant="label" color="textMuted">ENERGY IMPACT</ThemedText>
+              <ThemedText variant="data" style={{ color: sw.data.solarFlareRisk > 0.2 ? colors.danger : colors.warning }}>-{(sw.data.solarFlareRisk * 100).toFixed(0)}%</ThemedText>
+            </View>
+          </View>
+          {getAlertMessage() && (
+            <View style={[styles.alertMsg, { backgroundColor: colors.warning + '18', borderColor: colors.warning + '44' }]}>
+              <Ionicons name="warning" size={14} color={colors.warning} />
+              <ThemedText variant="caption" style={{ color: colors.warning, flex: 1 }}>{getAlertMessage()}</ThemedText>
+            </View>
+          )}
+        </View>
+      </AnimatedCard>
+
       {/* Alert Banner */}
       {reorderList.length > 0 && (
-        <AnimatedCard delay={50}>
+        <AnimatedCard delay={100}>
           <View style={[styles.alertBanner, { backgroundColor: colors.warning + '18', borderColor: colors.warning + '44' }]}>
             <Ionicons name="warning" size={20} color={colors.warning} />
             <View style={{ flex: 1 }}>
@@ -306,6 +350,16 @@ const styles = StyleSheet.create({
   clockLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   clockRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   clockIndicator: { width: 8, height: 8, borderRadius: 4 },
+  spacePanel: {
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: spacing.md,
+  },
+  spacePanelHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
+  asteroidBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: 4 },
+  spacePanelGrid: { flexDirection: 'row', justifyContent: 'space-between' },
+  spacePanelItem: { alignItems: 'center' },
+  alertMsg: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.sm, borderWidth: 1, borderRadius: 4, marginTop: spacing.md },
   alertBanner: {
     borderWidth: 1,
     borderRadius: 5,

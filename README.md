@@ -34,9 +34,9 @@ LunarBase-Resource-Manager/
 |       |-- index.tsx             # Dados reais da NASA APOD API
 |-- src/
 |   |-- components/               # 12 componentes reutilizaveis
-|   |-- context/                  # ThemeContext, ResourcesContext, SimulationContext
-|   |-- hooks/                    # useAsyncStorage, useResourceStats
-|   |-- services/                 # AsyncStorage + NASA API
+|   |-- context/                  # ThemeContext, ResourcesContext, SimulationContext, SpaceWeatherContext, ApiContext
+|   |-- hooks/                    # useAsyncStorage, useResourceStats, useSpaceWeather
+|   |-- services/                 # AsyncStorage + NASA API + SOA API services
 |   |-- data/                     # Mock data com recursos e eventos lunares
 |   |-- types/                    # Tipagens TypeScript completas
 |   |-- theme/                    # Paleta de cores espaciais (dark/light)
@@ -59,6 +59,7 @@ LunarBase-Resource-Manager/
 | TypeScript | Projeto 100% tipado |
 | Animações | Focus-triggered em todas as telas |
 | NASA APOD API | Dados reais de astronomia (diferencial) |
+| SOA Web Services | 6 microservicos REST integrados ao app mobile |
 
 ## Screens
 
@@ -108,12 +109,13 @@ Configuração de tripulação e duração em dias, execução de simulação de
 - Node.js 18+
 - npm ou pnpm
 - Expo Go (Android/iOS) ou emulador
+- .NET 8 SDK (para executar web services localmente)
 
 ### Passos
 
 ```bash
 # Clonar o repositorio
-git clone https://github.com/FelipeMarquesdeOliveira/LunarBase-Resource-Manager.git
+git clone https://github.com/FelipemarquesdeOliveira/LunarBase-Resource-Manager.git
 cd LunarBase-Resource-Manager
 
 # Instalar dependencias
@@ -125,6 +127,30 @@ npx expo start
 # Limpar cache se necessario
 npx expo start --clear
 ```
+
+### Integracao com Web Services (SOA)
+
+Este projeto mobile foi desenvolvido em conjunto com um projeto de SOA (Architecture Oriented to Services) da FIAP. Os web services gerenciam a telemetria, recursos, simulacao e eventos da base lunar.
+
+```bash
+# Repositorio dos Web Services
+git clone https://github.com/FelipemarquesdeOliveira/GS-SOA-WebServices.git
+cd GS-SOA-WebServices/src
+
+# Executar servicos (exemplo ResourceService)
+cd ResourceService && dotnet run
+```
+
+**Microservicos disponiveis:**
+- `ResourceService` - gestao de recursos (porta 5001)
+- `SimulationService` - simulacao de consumo (porta 5002)
+- `EventService` - eventos e alertas (porta 5003)
+- `TelemetryService` - telemetria em tempo real (porta 5004)
+- `SpaceIntegrationService` - dados espaciais (porta 5005)
+- `CrewService` - gestao de tripulacao (porta 5006)
+
+**Configuracao da API:**
+No app, va em Ajustes > Configuracao da API e informe a URL base (ex: `http://localhost:5000`). O app alterna automaticamente entre modo offline (dados locais) e modo online (web services).
 
 ### Expo Go (QR Code)
 1. Instale o app Expo Go no celular

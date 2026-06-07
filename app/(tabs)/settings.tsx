@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { useResources } from '@/context/ResourcesContext';
 import { useSimulation } from '@/context/SimulationContext';
+import { useApi } from '@/context/ApiContext';
 import { AnimatedCard, AnimatedPressable, ThemedText } from '@/components';
 import { spacing } from '@/theme/spacing';
 import type { EventKind } from '@/types';
@@ -25,6 +26,7 @@ export default function SettingsScreen() {
   const { colors, preference, setPreference } = useTheme();
   const { resetToDefault } = useResources();
   const { config, toggleEvent, reset } = useSimulation();
+  const { apiUrl, isOnline, checkConnection } = useApi();
   const router = useRouter();
 
   return (
@@ -100,8 +102,46 @@ export default function SettingsScreen() {
         </View>
       </AnimatedCard>
 
-      {/* Navigation */}
+      {/* API / SOA Integration */}
       <AnimatedCard delay={150}>
+        <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, overflow: 'hidden' }}>
+          <View style={{ padding: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+            <ThemedText variant="label" color="textMuted">SOA WEB SERVICES</ThemedText>
+          </View>
+          <View style={{ padding: spacing.md }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm }}>
+              <ThemedText variant="body">API Connection</ThemedText>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: isOnline ? colors.success : colors.danger }} />
+                <ThemedText variant="caption" style={{ color: isOnline ? colors.success : colors.danger }}>
+                  {isOnline ? 'ONLINE' : 'OFFLINE'}
+                </ThemedText>
+              </View>
+            </View>
+            <ThemedText variant="caption" color="textMuted">URL: {apiUrl}</ThemedText>
+            <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md }}>
+              <AnimatedPressable
+                onPress={checkConnection}
+                style={{
+                  flex: 1,
+                  paddingVertical: spacing.sm,
+                  alignItems: 'center',
+                  borderRadius: 3,
+                  backgroundColor: colors.primary,
+                }}
+              >
+                <ThemedText variant="label" style={{ color: '#000' }}>TEST CONNECTION</ThemedText>
+              </AnimatedPressable>
+            </View>
+            <ThemedText variant="caption" color="textMuted" style={{ marginTop: spacing.sm }}>
+              SOA Services: ResourceService (5001), EventService (5003), SpaceIntegration (5005)
+            </ThemedText>
+          </View>
+        </View>
+      </AnimatedCard>
+
+      {/* Navigation */}
+      <AnimatedCard delay={200}>
         <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, overflow: 'hidden' }}>
           <View style={{ padding: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
             <ThemedText variant="label" color="textMuted">NAVIGATION</ThemedText>
@@ -122,7 +162,7 @@ export default function SettingsScreen() {
       </AnimatedCard>
 
       {/* Actions */}
-      <AnimatedCard delay={200}>
+      <AnimatedCard delay={250}>
         <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, overflow: 'hidden' }}>
           <View style={{ padding: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
             <ThemedText variant="label" color="textMuted">DATA ACTIONS</ThemedText>
@@ -154,7 +194,7 @@ export default function SettingsScreen() {
         </View>
       </AnimatedCard>
 
-      <AnimatedCard delay={250}>
+      <AnimatedCard delay={300}>
         <ThemedText variant="caption" color="textDim" align="center" style={{ marginTop: spacing.md }}>
           LUNARBASE MANAGER v0.1.0{'\n'}GLOBAL SOLUTION 2026.1 - FIAP
         </ThemedText>

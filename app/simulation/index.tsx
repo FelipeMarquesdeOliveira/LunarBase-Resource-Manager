@@ -6,6 +6,9 @@ import Animated, { useSharedValue, useAnimatedStyle, withSpring, withDelay } fro
 import { useIsFocused } from '@react-navigation/native';
 import { useTheme } from '@/context/ThemeContext';
 import { useSimulation } from '@/context/SimulationContext';
+import { useSpaceWeather } from '@/context/SpaceWeatherContext';
+import { useApi } from '@/context/ApiContext';
+import { SimulationService } from '@/services';
 import { ThemedText, FormField, SectionHeader, PrimaryButton } from '@/components';
 import { spacing } from '@/theme/spacing';
 import { initialResources } from '@/data/mockData';
@@ -38,6 +41,8 @@ function AnimatedSection({ children, delay = 0, style }: { children: React.React
 export default function SimulationScreen() {
   const { colors } = useTheme();
   const { config } = useSimulation();
+  const { getEnergyModifier, getOxygenModifier } = useSpaceWeather();
+  const { isOnline } = useApi();
   const router = useRouter();
 
   const [crew, setCrew] = useState(String(config.crewSize));
@@ -56,6 +61,22 @@ export default function SimulationScreen() {
     setProgress(0);
     setResults(null);
 
+    if (isOnline) {
+      try {
+        const sim = await SimulationService.create({ name: `Simulation ${new Date().toISOString()}`, crewSize: crewN, days: daysN });
+        if (sim?.id) {
+          const result = await SimulationService.run(sim.id);
+          if (result?.finalResources) {
+            setResults({ day: daysN, water: result.finalResources.water, energy: result.finalResources.energy, oxygen: result.finalResources.oxygen, food: result.finalResources.food });
+            setRunning(false);
+            return;
+          }
+        }
+      } catch {
+        // fallback to local simulation
+      }
+    }
+
     const current = {
       water: initialResources[0].current,
       energy: initialResources[1].current,
@@ -72,9 +93,12 @@ export default function SimulationScreen() {
         food: (initialResources[3].dailyConsumption * crewN) / 4,
       };
 
+      const solarMod = getEnergyModifier();
+      const oxygenMod = getOxygenModifier();
+
       current.water = Math.max(0, current.water - base.water + (config.activeEvents.includes('supply') && day % 7 === 0 ? 60 : 0));
-      current.energy = Math.max(0, current.energy - base.energy + (config.activeEvents.includes('solar-storm') && day % 5 === 0 ? -30 : 0));
-      current.oxygen = Math.max(0, current.oxygen - base.oxygen);
+      current.energy = Math.max(0, current.energy - base.energy + (config.activeEvents.includes('solar-storm') && day % 5 === 0 ? -30 : 0) - (base.energy * solarMod));
+      current.oxygen = Math.max(0, current.oxygen - base.oxygen - (base.oxygen * oxygenMod));
       current.food = Math.max(0, current.food - base.food);
 
       setProgress(Math.round((day / daysN) * 100));
@@ -115,6 +139,21 @@ export default function SimulationScreen() {
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.sm }}>
             <ThemedText variant="caption" color="textMuted">Active events: {config.activeEvents.length}</ThemedText>
             <ThemedText variant="caption" color="primary" onPress={() => router.push('/(tabs)/settings')}>CONFIGURE</ThemedText>
+          </View>
+          {isOnline && (
+            <ThemedText variant="caption" style={{ color: colors.success, marginTop: spacing.xs }}>
+              Connected to SOA SimulationService
+            </ThemedText>
+          )}
+          <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.md, paddingTop: spacing.md, borderTopWidth: 1, borderTopColor: colors.border }}>
+            <View style={{ flex: 1 }}>
+              <ThemedText variant="label" color="textMuted">SOLAR IMPACT</ThemedText>
+              <ThemedText variant="caption" style={{ color: getEnergyModifier() > 0.2 ? colors.danger : colors.warning }}>ENERGY -{Math.round(getEnergyModifier() * 100)}%</ThemedText>
+            </View>
+            <View style={{ flex: 1 }}>
+              <ThemedText variant="label" color="textMuted">MARS IMPACT</ThemedText>
+              <ThemedText variant="caption" style={{ color: colors.textMuted }}>O2 -{Math.round(getOxygenModifier() * 100)}%</ThemedText>
+            </View>
           </View>
         </View>
       </AnimatedSection>

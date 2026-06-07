@@ -5,7 +5,7 @@ import { View } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { ThemeProvider, ResourcesProvider, SimulationProvider, useTheme } from '@/context';
+import { ThemeProvider, ResourcesProvider, SimulationProvider, SpaceWeatherProvider, ApiProvider, useTheme } from '@/context';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -80,7 +80,11 @@ export default function RootLayout() {
         <ThemeProvider>
           <ResourcesProvider>
             <SimulationProvider>
-              <RootLayoutInner />
+              <SpaceWeatherProvider>
+                <ApiProvider>
+                  <RootLayoutInner />
+                </ApiProvider>
+              </SpaceWeatherProvider>
             </SimulationProvider>
           </ResourcesProvider>
         </ThemeProvider>
