@@ -1,4 +1,4 @@
-import { Pressable, Text, StyleSheet, ActivityIndicator, View } from 'react-native';
+import { Pressable, Text, ActivityIndicator } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { spacing, radius } from '@/theme/spacing';
 
@@ -75,16 +75,3 @@ export function PrimaryButton({
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  btn: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    borderRadius: radius.md,
-    minHeight: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  label: { fontSize: 15 },
-});

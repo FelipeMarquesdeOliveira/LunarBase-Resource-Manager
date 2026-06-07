@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { useResources } from '@/context/ResourcesContext';
-import { SectionHeader, ResourceCard, ThemedText, ThemedView } from '@/components';
+import { ResourceCard, ThemedText } from '@/components';
 import { spacing } from '@/theme/spacing';
 import type { ResourceKind } from '@/types';
 
@@ -92,8 +92,3 @@ export default function ResourcesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  header: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, gap: spacing.xs },
-  filters: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.lg, paddingVertical: spacing.md, flexWrap: 'wrap' },
-});

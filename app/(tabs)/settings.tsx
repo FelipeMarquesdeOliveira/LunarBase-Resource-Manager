@@ -1,9 +1,9 @@
-import { ScrollView, StyleSheet, Switch, View, Pressable } from 'react-native';
+import { ScrollView, Switch, View, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { useResources } from '@/context/ResourcesContext';
 import { useSimulation } from '@/context/SimulationContext';
-import { ThemedText, ThemedView, SectionHeader } from '@/components';
+import { ThemedText, SectionHeader } from '@/components';
 import { spacing } from '@/theme/spacing';
 import type { EventKind } from '@/types';
 
@@ -22,7 +22,7 @@ const THEME_OPTIONS = [
 ] as const;
 
 export default function SettingsScreen() {
-  const { colors, preference, setPreference, toggle } = useTheme();
+  const { colors, preference, setPreference } = useTheme();
   const { resetToDefault } = useResources();
   const { config, toggleEvent, reset } = useSimulation();
   const router = useRouter();
@@ -40,7 +40,7 @@ export default function SettingsScreen() {
           <ThemedText variant="label" color="textMuted">DISPLAY</ThemedText>
         </View>
 
-        <View style={{ padding: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+        <View style={{ padding: spacing.md }}>
           <ThemedText variant="body" style={{ marginBottom: spacing.sm }}>Theme Mode</ThemedText>
           <View style={{ flexDirection: 'row', gap: spacing.xs }}>
             {THEME_OPTIONS.map((opt) => (
@@ -63,16 +63,6 @@ export default function SettingsScreen() {
               </Pressable>
             ))}
           </View>
-        </View>
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.md }}>
-          <ThemedText variant="body">Dark Mode</ThemedText>
-          <Switch
-            value={preference === 'dark' || (preference === 'system' && false)}
-            onValueChange={toggle}
-            trackColor={{ true: colors.primary, false: colors.surfaceAlt }}
-            thumbColor="#fff"
-          />
         </View>
       </View>
 
@@ -160,16 +150,3 @@ export default function SettingsScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    minHeight: 48,
-  },
-  themeRow: { flexDirection: 'row', gap: 4 },
-  themeBtn: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 },
-});

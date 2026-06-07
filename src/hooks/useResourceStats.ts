@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { useTheme } from '@/context/ThemeContext';
 import type { Resource } from '@/types';
 import { autonomyDays, classify, recommendReorder, worst } from '@/utils/criticality';
 
@@ -14,9 +13,4 @@ export function useResourceStats(resources: Resource[]) {
       .filter((entry) => entry.shouldReorder);
     return { totalAutonomy, overall, reorderList };
   }, [resources]);
-}
-
-export function useThemeColor<T extends string>(light: T, dark: T): T {
-  const { scheme } = useTheme();
-  return scheme === 'dark' ? dark : light;
 }

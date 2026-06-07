@@ -79,6 +79,6 @@ export function ResourcesProvider({ children }: { children: React.ReactNode }) {
 
 export function useResources(): ResourcesContextValue {
   const ctx = useContext(ResourcesContext);
-  if (!ctx) throw new Error('useResources deve ser usado dentro de ResourcesProvider');
+  if (!ctx) throw new Error('useResources must be used within ResourcesProvider');
   return ctx;
 }

@@ -72,6 +72,6 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
 
 export function useSimulation(): SimulationContextValue {
   const ctx = useContext(SimulationContext);
-  if (!ctx) throw new Error('useSimulation deve ser usado dentro de SimulationProvider');
+  if (!ctx) throw new Error('useSimulation must be used within SimulationContext');
   return ctx;
 }

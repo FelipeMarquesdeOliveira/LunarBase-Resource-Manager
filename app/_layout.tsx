@@ -1,12 +1,11 @@
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider, ResourcesProvider, SimulationProvider, useTheme } from '@/context';
-import { ThemedView } from '@/components';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -21,26 +20,45 @@ function RootLayoutInner() {
 
   return (
     <>
-      <StatusBar style={ready ? 'light' : 'dark'} />
+      <StatusBar style="light" />
       <Stack
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: colors.background },
-          animation: 'fade',
+          animation: 'slide_from_right',
+          animationDuration: 250,
         }}
       >
-        <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="(tabs)"
+          options={{ animation: 'fade' }}
+        />
         <Stack.Screen
           name="resource/new"
-          options={{ presentation: 'modal', headerShown: false }}
+          options={{
+            presentation: 'modal',
+            headerShown: false,
+            animation: 'slide_from_bottom',
+            animationDuration: 300,
+          }}
         />
         <Stack.Screen
           name="resource/[id]"
-          options={{ presentation: 'card', headerShown: false }}
+          options={{
+            presentation: 'card',
+            headerShown: false,
+            animation: 'slide_from_right',
+            animationDuration: 250,
+          }}
         />
         <Stack.Screen
           name="simulation"
-          options={{ presentation: 'modal', headerShown: false }}
+          options={{
+            presentation: 'modal',
+            headerShown: false,
+            animation: 'slide_from_bottom',
+            animationDuration: 300,
+          }}
         />
       </Stack>
     </>

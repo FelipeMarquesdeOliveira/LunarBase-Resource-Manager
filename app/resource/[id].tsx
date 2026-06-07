@@ -1,10 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { ScrollView, StyleSheet, View, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withSequence,
+  runOnJS,
+} from 'react-native-reanimated';
 import { useTheme } from '@/context/ThemeContext';
 import { useResources } from '@/context/ResourcesContext';
-import { ThemedText, ThemedView, CriticalityBadge, ProgressBar, SectionHeader, PrimaryButton } from '@/components';
+import { ThemedText, CriticalityBadge, ProgressBar, SectionHeader, PrimaryButton } from '@/components';
 import { spacing } from '@/theme/spacing';
 import { classify, autonomyDays, kindLabel } from '@/utils/criticality';
 import { formatNumber, formatDate } from '@/utils/format';
@@ -21,6 +28,33 @@ const kindColor: Record<string, string> = {
   food: '#9B59B6',
 };
 
+function AnimatedPressable({ onPress, children, style }: { onPress: () => void; children: React.ReactNode; style?: any }) {
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  function handlePressIn() {
+    scale.value = withSpring(0.92, { damping: 15, stiffness: 400 });
+  }
+
+  function handlePressOut() {
+    scale.value = withSpring(1, { damping: 15, stiffness: 400 });
+  }
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      style={style}
+    >
+      <Animated.View style={animatedStyle}>{children}</Animated.View>
+    </Pressable>
+  );
+}
+
 export default function ResourceDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors } = useTheme();
@@ -31,11 +65,11 @@ export default function ResourceDetailScreen() {
 
   if (!resource) {
     return (
-      <ThemedView variant="background" style={styles.centered}>
+      <View style={{ flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', gap: spacing.lg }}>
         <Ionicons name="alert-circle" size={64} color={colors.danger} />
         <ThemedText variant="h2" align="center" style={{ marginTop: spacing.lg }}>RESOURCE NOT FOUND</ThemedText>
         <PrimaryButton title="GO BACK" onPress={() => router.back()} />
-      </ThemedView>
+      </View>
     );
   }
 
@@ -43,11 +77,6 @@ export default function ResourceDetailScreen() {
   const autonomy = autonomyDays(resource);
   const ratio = resource.capacity > 0 ? resource.current / resource.capacity : 0;
   const tone = kindColor[resource.kind] || colors.primary;
-
-  const history = dailyHistoryMock.map((d) => ({
-    labels: [`D${d.day}`],
-    datasets: [{ data: [d[resource.kind as keyof typeof d] as number] }],
-  }));
 
   return (
     <ScrollView
@@ -125,9 +154,9 @@ export default function ResourceDetailScreen() {
         <ThemedText variant="body" style={{ marginTop: spacing.xs }}>{resource.source}</ThemedText>
       </View>
 
-      {/* Actions */}
+      {/* Actions with animations */}
       <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-        <Pressable
+        <AnimatedPressable
           onPress={() => adjustResource(resource.id, -10)}
           style={{
             flex: 1,
@@ -140,11 +169,29 @@ export default function ResourceDetailScreen() {
             borderRadius: 5,
           }}
         >
-          <Ionicons name="remove" size={18} color="#fff" />
+          <Ionicons name="remove" size={20} color="#fff" />
           <ThemedText variant="body" style={{ color: '#fff', fontWeight: '700' }}>-10</ThemedText>
-        </Pressable>
-        <Pressable
-          onPress={() => adjustResource(resource.id, 10)}
+        </AnimatedPressable>
+
+        <AnimatedPressable
+          onPress={() => adjustResource(resource.id, -1)}
+          style={{
+            flex: 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: spacing.sm,
+            backgroundColor: colors.warning,
+            paddingVertical: spacing.md,
+            borderRadius: 5,
+          }}
+        >
+          <Ionicons name="remove" size={18} color="#fff" />
+          <ThemedText variant="body" style={{ color: '#fff', fontWeight: '700' }}>-1</ThemedText>
+        </AnimatedPressable>
+
+        <AnimatedPressable
+          onPress={() => adjustResource(resource.id, 1)}
           style={{
             flex: 1,
             flexDirection: 'row',
@@ -157,15 +204,31 @@ export default function ResourceDetailScreen() {
           }}
         >
           <Ionicons name="add" size={18} color="#fff" />
-          <ThemedText variant="body" style={{ color: '#fff', fontWeight: '700' }}>+10</ThemedText>
-        </Pressable>
+          <ThemedText variant="body" style={{ color: '#fff', fontWeight: '700' }}>+1</ThemedText>
+        </AnimatedPressable>
+
+        <AnimatedPressable
+          onPress={() => adjustResource(resource.id, 10)}
+          style={{
+            flex: 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: spacing.sm,
+            backgroundColor: colors.primary,
+            paddingVertical: spacing.md,
+            borderRadius: 5,
+          }}
+        >
+          <Ionicons name="add" size={20} color="#000" />
+          <ThemedText variant="body" style={{ color: '#000', fontWeight: '700' }}>+10</ThemedText>
+        </AnimatedPressable>
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg },
   metricBox: {
     flex: 1,
     borderWidth: 1,

@@ -1,8 +1,8 @@
-import { FlatList, StyleSheet, View, Pressable } from 'react-native';
+import { FlatList, View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { useSimulation } from '@/context/SimulationContext';
-import { SectionHeader, EventCard, ThemedText, ThemedView } from '@/components';
+import { EventCard, ThemedText } from '@/components';
 import { spacing } from '@/theme/spacing';
 import { sampleEvents } from '@/data/mockData';
 
@@ -57,8 +57,6 @@ export default function EventsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  header: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, gap: spacing.xs },
   counterBox: {
     flex: 1,
     alignItems: 'center',

@@ -1,5 +1,4 @@
 import { Pressable, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { spacing } from '@/theme/spacing';
 import { classify, autonomyDays, kindIcon, kindLabel } from '@/utils/criticality';
@@ -54,7 +53,7 @@ export function ResourceCard({ resource, onPress, compact = false }: Props) {
 
       <View style={{ flexDirection: 'row', gap: spacing.xl, marginBottom: spacing.md }}>
         <View>
-          <ThemedText variant="label" color="textMuted">ATUAL</ThemedText>
+          <ThemedText variant="label" color="textMuted">CURRENT</ThemedText>
           <ThemedText variant="data" style={{ color: tone }}>{formatNumber(resource.current)}</ThemedText>
           <ThemedText variant="caption" color="textMuted">{resource.unit}</ThemedText>
         </View>
@@ -64,11 +63,11 @@ export function ResourceCard({ resource, onPress, compact = false }: Props) {
           <ThemedText variant="caption" color="textMuted">{resource.unit}</ThemedText>
         </View>
         <View>
-          <ThemedText variant="label" color="textMuted">AUTONOMIA</ThemedText>
+          <ThemedText variant="label" color="textMuted">AUTONOMY</ThemedText>
           <ThemedText variant="data" style={{ color: autonomy < 5 ? colors.warning : colors.success }}>
             {Number.isFinite(autonomy) ? `${autonomy.toFixed(0)}d` : '--'}
           </ThemedText>
-          <ThemedText variant="caption" color="textMuted">dias</ThemedText>
+          <ThemedText variant="caption" color="textMuted">days</ThemedText>
         </View>
       </View>
 
@@ -76,7 +75,7 @@ export function ResourceCard({ resource, onPress, compact = false }: Props) {
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.sm }}>
         <ThemedText variant="caption" color="textMuted">{resource.source}</ThemedText>
-        <ThemedText variant="mono" color="textMuted">{resource.dailyConsumption} {resource.unit}/dia</ThemedText>
+        <ThemedText variant="mono" color="textMuted">{resource.dailyConsumption} {resource.unit}/day</ThemedText>
       </View>
     </Pressable>
   );

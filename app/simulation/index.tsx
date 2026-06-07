@@ -1,17 +1,16 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View, Pressable } from 'react-native';
+import { ScrollView, View, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { useSimulation } from '@/context/SimulationContext';
-import { useResources } from '@/context/ResourcesContext';
-import { ThemedText, ThemedView, FormField, SectionHeader, PrimaryButton } from '@/components';
+import { ThemedText, FormField, SectionHeader, PrimaryButton } from '@/components';
 import { spacing } from '@/theme/spacing';
 import { initialResources } from '@/data/mockData';
 
 export default function SimulationScreen() {
   const { colors } = useTheme();
-  const { config, updateConfig } = useSimulation();
+  const { config } = useSimulation();
   const router = useRouter();
 
   const [crew, setCrew] = useState(String(config.crewSize));
@@ -148,12 +147,3 @@ export default function SimulationScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  header: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  row: { flexDirection: 'row', gap: spacing.md },
-  actions: { gap: spacing.md },
-  progressBar: { width: '100%', height: 8, borderRadius: 999, marginTop: spacing.md, overflow: 'hidden' },
-  progressFill: { height: '100%', borderRadius: 999 },
-  resultRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.sm, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255,255,255,0.1)' },
-});

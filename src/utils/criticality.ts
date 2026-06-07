@@ -18,24 +18,24 @@ export function autonomyDays(resource: Pick<Resource, 'current' | 'dailyConsumpt
 export function recommendReorder(resource: Resource): { shouldReorder: boolean; reason: string } {
   const days = autonomyDays(resource);
   const crit = classify(resource);
-  if (crit === 'depleted') return { shouldReorder: true, reason: 'Recurso esgotado. Reabastecimento imediato.' };
-  if (crit === 'critical') return { shouldReorder: true, reason: 'Nivel critico. Reabastecer em ate 24h.' };
-  if (days < 3) return { shouldReorder: true, reason: `Autonomia de ${days.toFixed(1)} dias. Agendar reabastecimento.` };
-  return { shouldReorder: false, reason: 'Nivel dentro do esperado.' };
+  if (crit === 'depleted') return { shouldReorder: true, reason: 'Resource depleted. Immediate resupply required.' };
+  if (crit === 'critical') return { shouldReorder: true, reason: 'Critical level. Resupply within 24h.' };
+  if (days < 3) return { shouldReorder: true, reason: `Autonomy of ${days.toFixed(1)} days. Schedule resupply.` };
+  return { shouldReorder: false, reason: 'Level within expected range.' };
 }
 
 export const criticalityLabel: Record<Criticality, string> = {
-  safe: 'Estavel',
-  attention: 'Atencao',
-  critical: 'Critico',
-  depleted: 'Esgotado',
+  safe: 'Stable',
+  attention: 'Attention',
+  critical: 'Critical',
+  depleted: 'Depleted',
 };
 
 export const kindLabel: Record<ResourceKind, string> = {
-  water: 'Agua',
-  energy: 'Energia',
-  oxygen: 'Oxigenio',
-  food: 'Alimento',
+  water: 'Water',
+  energy: 'Energy',
+  oxygen: 'Oxygen',
+  food: 'Food',
 };
 
 export const kindIcon: Record<ResourceKind, string> = {

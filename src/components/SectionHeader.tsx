@@ -1,4 +1,5 @@
 import { View } from 'react-native';
+import { useTheme } from '@/context/ThemeContext';
 import { spacing } from '@/theme/spacing';
 import { ThemedText } from './ThemedText';
 
@@ -10,6 +11,8 @@ interface Props {
 }
 
 export function SectionHeader({ title, subtitle, right, dense = false }: Props) {
+  const { colors } = useTheme();
+
   return (
     <View
       style={{
@@ -20,7 +23,7 @@ export function SectionHeader({ title, subtitle, right, dense = false }: Props) 
         marginBottom: dense ? spacing.sm : spacing.md,
         paddingBottom: spacing.sm,
         borderBottomWidth: 1,
-        borderBottomColor: '#2E2E2E',
+        borderBottomColor: colors.border,
       }}
     >
       <View style={{ gap: 2 }}>
