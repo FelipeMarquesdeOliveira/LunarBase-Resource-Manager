@@ -280,6 +280,13 @@ export default function DashboardScreen() {
             <Ionicons name="list" size={20} color={colors.text} />
             <ThemedText variant="label" color="textMuted">ALL RESOURCES</ThemedText>
           </Pressable>
+          <Pressable
+            onPress={() => router.push('/space')}
+            style={[styles.quickAction, { backgroundColor: colors.surface, borderColor: colors.border }]}
+          >
+            <Ionicons name="globe" size={20} color={colors.secondary} />
+            <ThemedText variant="label" color="textMuted">NASA DATA</ThemedText>
+          </Pressable>
         </View>
       </AnimatedCard>
     </ScrollView>

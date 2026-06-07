@@ -1,75 +1,80 @@
 # LunarBase Resource Manager
 
-> **Global Solution 2026.1** — Mobile Development & IoT
-> Engenharia de Software — 3º Ano
-> FIAP
+Global Solution 2026.1 - Mobile Development & IoT
+Engenharia de Software - 3o Ano
+FIAP
 
-Dashboard mobile em **React Native + Expo (TypeScript)** que simula a gestao de recursos vitais de uma base lunar. O app conecta as disciplinas da GS em um projeto unico e integrado.
+## Descricao
 
-## Tema
+Dashboard mobile em React Native + Expo (TypeScript) que simula a gestao de recursos vitais de uma base lunar. O sistema conecta as disciplinas da Global Solution em um projeto unico e integrado, demonstrando o monitoramento e controle de agua, energia, oxigenio e alimentos em um ambiente lunar.
 
-Vertente: **Sistemas autonomos e robotica para exploracao espacial**.
+Vertente: Sistemas autonomos e robotica para exploracao espacial.
 
-Conectado aos **ODS da ONU** (9 - Industria, Inovacao e Infraestrutura / 13 - Acao Climática), o app simula o monitoramento e gestao de agua, energia, oxigenio e alimentos em uma base lunar — demonstrando como a tecnologia espacial impacta a vida na Terra.
+Conexao com ODS da ONU: ODS 9 (Industria, Inovacao e Infraestrutura) / ODS 13 (Acao Climatica).
 
 ## Estrutura do Projeto
 
 ```
 LunarBase-Resource-Manager/
-├── app/                          # Expo Router (navegacao por arquivo)
-│   ├── _layout.tsx               # Root layout com providers (Theme, Resources, Simulation)
-│   ├── index.tsx                 # Tela splash/home
-│   ├── (tabs)/                   # Navegacao por abas
-│   │   ├── _layout.tsx           # Tab navigator
-│   │   ├── dashboard.tsx          # Dashboard principal com graficos
-│   │   ├── resources.tsx          # Lista de recursos com filtro
-│   │   ├── events.tsx            # Eventos (EVA, tempestade solar, etc.)
-│   │   └── settings.tsx          # Ajustes, tema e configuracao de simulacao
-│   ├── resource/
-│   │   ├── [id].tsx              # Detalhe de recurso especifico
-│   │   └── new.tsx               # Formulario de novo recurso com validacao
-│   └── simulation/
-│       └── index.tsx             # Simulacao de consumo dia a dia
-├── src/
-│   ├── components/               # 10 componentes reutilizaveis
-│   ├── context/                  # ThemeContext, ResourcesContext, SimulationContext
-│   ├── hooks/                    # useAsyncStorage, useResourceStats
-│   ├── services/                 # AsyncStorage wrapper
-│   ├── data/                     # Mock data com recursos e eventos
-│   ├── types/                    # Tipagens TypeScript
-│   ├── theme/                    # Paleta de cores espaciais (dark/light)
-│   └── utils/                    # Logica de criticidade e formatacao
-└── assets/                      # Icones e splash com tema espacial
+|-- app/                          # Expo Router (navegacao por arquivo)
+|   |-- _layout.tsx               # Root layout com providers (Theme, Resources, Simulation)
+|   |-- index.tsx                 # Tela splash/home com animacao
+|   |-- (tabs)/                   # Navegacao por abas
+|   |   |-- _layout.tsx           # Tab navigator
+|   |   |-- dashboard.tsx          # Command center interativo
+|   |   |-- resources.tsx         # Lista de recursos com filtros
+|   |   |-- events.tsx            # Eventos lunares (EVA, tempestade solar, etc.)
+|   |   |-- settings.tsx          # Ajustes, tema e configuracao
+|   |-- resource/
+|   |   |-- [id].tsx              # Detalhe de recurso com +/- e grafico
+|   |   |-- new.tsx               # Formulario de novo recurso com validacao
+|   |-- simulation/
+|   |   |-- index.tsx             # Simulacao de consumo dia a dia
+|   |-- space/
+|       |-- index.tsx             # Dados reais da NASA APOD API
+|-- src/
+|   |-- components/               # 12 componentes reutilizaveis
+|   |-- context/                  # ThemeContext, ResourcesContext, SimulationContext
+|   |-- hooks/                    # useAsyncStorage, useResourceStats
+|   |-- services/                 # AsyncStorage + NASA API
+|   |-- data/                     # Mock data com recursos e eventos lunares
+|   |-- types/                    # Tipagens TypeScript completas
+|   |-- theme/                    # Paleta de cores espaciais (dark/light)
+|   |-- utils/                    # Logica de criticidade e formatacao
+|-- assets/                      # Icones e splash com tema espacial
 ```
 
-## Funcionalidades
+## Funcionalidades Implementadas
 
-| Recurso | Implementacao |
+| Recurso | Descricao |
 |---|---|
-| **Expo Router** | 6 telas, navegacao stack + tabs |
-| **useState / useEffect** | Gerenciamento de estado em todas as telas |
-| **Context API** | ThemeContext, ResourcesContext, SimulationContext |
-| **AsyncStorage** | Persistencia de tema, recursos e configuracao de simulacao |
-| **Formulario com validacao** | NewResourceScreen com validacao completa |
-| **Dashboards com graficos** | Dashboard com LineChart (react-native-chart-kit) |
-| **Componentizacao** | 10 componentes reutilizaveis |
-| **Tema dinammico (dark/light)** | Toggle automatico com persistencia |
-| **TypeScript** | Projeto 100% tipado |
+| Expo Router | 9 telas com navegacao stack + tabs |
+| useState / useEffect | Gerenciamento de estado em todas as telas |
+| Context API | ThemeContext, ResourcesContext, SimulationContext |
+| AsyncStorage | Persistencia de tema, recursos e configuracao de simulacao |
+| Formulario com validacao | NewResourceScreen com validacao completa |
+| Dashboards com graficos | Dashboard + ResourceDetail com LineChart |
+| Componentizacao | 12 componentes reutilizaveis |
+| Tema dinamico (dark/light) | Toggle automatico com persistencia |
+| TypeScript | Projeto 100% tipado |
+| Animações | Focus-triggered em todas as telas |
+| NASA APOD API | Dados reais de astronomia (diferencial) |
 
 ## Screens
 
-1. **Home/Splash** — Tela inicial com animacao de loading
-2. **Dashboard** — Metricas, graficos de historico, cards de recursos
-3. **Recursos** — Lista com filtro por tipo (agua, energia, oxigenio, alimento)
-4. **Eventos** — Lista de eventos lunares (EVA, tempestade solar, reabastecimento, manutencao, alertas)
-5. **Ajustes** — Toggle de tema, configuracao de eventos ativos, reset de dados
-6. **Detalhe do Recurso** — Metricas, historico em grafico, botoes de ajuste
-7. **Novo Recurso** — Formulario com validacao (nome, unidade, capacidade, consumo, fonte)
-8. **Simulacao** — Configura tripulacao e dias, executa simulacao de consumo
+1. **Home** - Tela inicial com animacao de entrada
+2. **Dashboard** - Command center interativo com mission clock, alertas, widgets de recursos, grafico de tendencias e quick actions
+3. **Resources** - Lista de recursos com filtros (ALL, H2O, PWR, O2, FOOD) e botao ADD
+4. **Events** - Lista de eventos lunares com contadores de severidade
+5. **Settings** - Theme mode, eventos de simulacao, navegacao e acoes de reset
+6. **Resource Detail** - Metricas, grafico de historico, botoes de ajuste (+-1, +-10)
+7. **New Resource** - Formulario com validacao para adicionar recursos
+8. **Simulation** - Configura tripulacao e dias, executa simulacao de consumo
+9. **Space Data** - Dados reais da NASA APOD API (Astronomy Picture of the Day)
 
 ## Instalacao e Execucao
 
-### Pré-requisitos
+### Pre-requisitos
 - Node.js 18+
 - npm ou pnpm
 - Expo Go (Android/iOS) ou emulador
@@ -84,35 +89,36 @@ cd LunarBase-Resource-Manager
 # Instalar dependencias
 npm install
 
-# Executar
+# Executar em modo de desenvolvimento
 npx expo start
+
+# Limpar cache se necessario
+npx expo start --clear
 ```
 
 ### Expo Go (QR Code)
-1. Instale o app **Expo Go** no celular
-2. Escaneie o QR Code gerado pelo `npx expo start`
-3. O app vai carregar com hot-reload
+1. Instale o app Expo Go no celular
+2. Escaneie o QR Code gerado pelo npx expo start
+3. O app carregara com hot-reload
 
 ## Tecnologias
 
 - React Native + Expo SDK 53
-- TypeScript
+- TypeScript (strict mode)
 - Expo Router (file-based routing)
 - react-native-chart-kit (graficos)
-- react-native-reanimated (animações)
-- @react-native-async-storage/async-storage (persistência)
+- react-native-reanimated (animacoes)
+- @react-native-async-storage/async-storage (persistencia)
 - React Native SVG
+- NASA Open APIs (diferencial)
 
 ## Integrantes
 
-- Nome Completo | RM: 000000
-- Nome Completo | RM: 000000
-- Nome Completo | RM: 000000
-- Nome Completo | RM: 000000
-- Nome Completo | RM: 000000
+- Felipe Marques de Oliveira | RM: 556319
+- Gabriel Barros Cisoto | RM: 556309
 
----
+## Professor
 
-**Professor:** Prof. Hercules Ramos
-**Disciplina:** Mobile Development & IoT — Global Solution 2026.1
-**FIAP** — Todos os direitos reservados
+Prof. Hercules Ramos
+Disciplina: Mobile Development & IoT - Global Solution 2026.1
+FIAP - Todos os direitos reservados
