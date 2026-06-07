@@ -157,7 +157,7 @@ export default function DashboardScreen() {
             </View>
             <View style={styles.spacePanelItem}>
               <ThemedText variant="label" color="textMuted">ENERGY IMPACT</ThemedText>
-              <ThemedText variant="data" style={{ color: sw.data.solarFlareRisk > 0.2 ? colors.danger : colors.warning }}>-{(sw.data.solarFlareRisk * 100).toFixed(0)}%</ThemedText>
+              <ThemedText variant="data" style={{ color: sw.solarFlareRisk > 0.2 ? colors.danger : colors.warning }}>-{(sw.solarFlareRisk * 100).toFixed(0)}%</ThemedText>
             </View>
           </View>
           {getAlertMessage() && (
