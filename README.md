@@ -70,27 +70,27 @@ Tela inicial com animacao de entrada, status da base e botao "Enter System".
 ### Dashboard — Command Center
 Mission clock, status da missão (dia, tripulação, recursos ativos) e widgets interativos de ajuste rápido por recurso.
 
-![Dashboard](assets/screenshots/dashboard.png)
+<img src="assets/screenshots/dashboard.png" width="280" />
 
 ### Recursos
 Lista de todos os recursos vitais com filtros por tipo (ALL, H2O, PWR, O2, FOOD), métricas de autonomia e consumo diário.
 
-![Recursos](assets/screenshots/recursos.png)
+<img src="assets/screenshots/recursos.png" width="280" />
 
 ### Eventos
 Painel de eventos lunares (EVA, tempestade solar, reabastecimento, manutenção) com contadores de severidade HIGH / MED / LOW.
 
-![Eventos](assets/screenshots/eventos.png)
+<img src="assets/screenshots/eventos.png" width="280" />
 
 ### Ajustes / Settings
 Controle de tema (Auto / Light / Dark), toggles de eventos de simulação e acesso rápido à Simulation.
 
-![Ajustes](assets/screenshots/ajustes.png)
+<img src="assets/screenshots/ajustes.png" width="280" />
 
 ### Detalhe de Recurso
 Métricas detalhadas (current, max, autonomia, consumo diário), gráfico de tendência 7 dias e botões de ajuste (−10 / −1 / +1 / +10).
 
-![Detalhe de Recurso](assets/screenshots/detalhe-recurso.png)
+<img src="assets/screenshots/detalhe-recurso.png" width="280" />
 
 ### Novo Recurso
 Formulário completo com seleção de tipo (H2O / PWR / O2 / FOOD), campos validados e botão SAVE.
@@ -100,7 +100,7 @@ Formulário completo com seleção de tipo (H2O / PWR / O2 / FOOD), campos valid
 ### Simulação
 Configuração de tripulação e duração em dias, execução de simulação de consumo com eventos aleatórios.
 
-![Simulação](assets/screenshots/simulacao.png)
+<img src="assets/screenshots/simulacao.png" width="280" />
 
 ## Instalacao e Execucao
 
