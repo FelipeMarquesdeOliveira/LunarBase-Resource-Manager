@@ -9,7 +9,7 @@ interface Props {
   size?: 'sm' | 'md';
 }
 
-const map: Record<Criticality, keyof ReturnType<typeof useTheme>['colors']> = {
+const map: Record<Criticality, 'success' | 'warning' | 'danger'> = {
   safe: 'success',
   attention: 'warning',
   critical: 'warning',
@@ -18,7 +18,8 @@ const map: Record<Criticality, keyof ReturnType<typeof useTheme>['colors']> = {
 
 export function CriticalityBadge({ level, size = 'md' }: Props) {
   const { colors } = useTheme();
-  const color = colors[map[level]];
+  const colorKey = map[level];
+  const color = colors[colorKey];
   const dim = size === 'sm' ? styles.sm : styles.md;
   return (
     <View

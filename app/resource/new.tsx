@@ -103,7 +103,7 @@ export default function NewResourceScreen() {
             value={name}
             onChangeText={setName}
             error={errors.name}
-            icon="label"
+            icon="pricetag"
             placeholder="Ex: Reserva de Agua"
           />
           <FormField

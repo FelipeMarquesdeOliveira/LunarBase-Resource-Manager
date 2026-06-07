@@ -12,6 +12,7 @@ interface ThemedViewProps extends ViewProps {
   bordered?: boolean;
   gap?: Padding;
   row?: boolean;
+  align?: 'start' | 'center' | 'end';
 }
 
 export function ThemedView({
@@ -21,6 +22,7 @@ export function ThemedView({
   bordered,
   gap,
   row,
+  align,
   style,
   children,
   ...rest
@@ -39,6 +41,7 @@ export function ThemedView({
         bordered ? { borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border } : null,
         padding !== undefined ? { padding } : null,
         row ? styles.row : null,
+        align ? { alignSelf: align === 'center' ? 'center' : align === 'end' ? 'flex-end' : 'flex-start' } : null,
         gap ? { gap: spacing[gap] } : null,
         style,
       ]}

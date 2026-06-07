@@ -55,7 +55,7 @@ export default function RootLayout() {
           <ResourcesProvider>
             <SimulationProvider>
               <RootLayoutInner />
-            </ResourcesProvider>
+            </SimulationProvider>
           </ResourcesProvider>
         </ThemeProvider>
       </SafeAreaProvider>

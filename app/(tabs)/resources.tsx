@@ -38,7 +38,7 @@ export default function ResourcesScreen() {
             key={f.value}
             variant={filter === f.value ? 'surfaceAlt' : 'surface'}
             rounded="pill"
-            padded={{ xs: 8, sm: 12 }}
+            padded="sm"
             onTouchEnd={() => setFilter(f.value)}
             style={{ opacity: filter === f.value ? 1 : 0.6 }}
           >

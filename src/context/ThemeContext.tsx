@@ -50,7 +50,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [scheme, setPreference]);
 
   const value = useMemo<ThemeContextValue>(
-    () => ({ preference, scheme, colors: colors[scheme], setPreference, toggle, ready }),
+    () => ({ preference, scheme, colors: colors[scheme] as ThemeColors, setPreference, toggle, ready }),
     [preference, scheme, setPreference, toggle, ready],
   );
 
