@@ -1,0 +1,67 @@
+export const palette = {
+  space900: '#05070F',
+  space800: '#0B1020',
+  space700: '#121A33',
+  space600: '#1B2547',
+  star: '#EBF0FF',
+  moon: '#F4C454',
+  nebula: '#7C5CFF',
+  plasma: '#4FD1C5',
+  alert: '#FF6B6B',
+  warn: '#FFB020',
+  ok: '#5BD992',
+  earth: '#4FA3FF',
+  mars: '#FF7A45',
+};
+
+export const colors = {
+  light: {
+    background: palette.space800,
+    surface: palette.space700,
+    surfaceAlt: palette.space600,
+    text: palette.star,
+    textMuted: 'rgba(235,240,255,0.65)',
+    border: 'rgba(235,240,255,0.08)',
+    primary: palette.moon,
+    secondary: palette.plasma,
+    accent: palette.nebula,
+    success: palette.ok,
+    warning: palette.warn,
+    danger: palette.alert,
+    info: palette.earth,
+    chart: {
+      grid: 'rgba(235,240,255,0.08)',
+      axis: 'rgba(235,240,255,0.45)',
+      water: palette.earth,
+      energy: palette.moon,
+      oxygen: palette.plasma,
+      food: palette.ok,
+    },
+  },
+  dark: {
+    background: '#03050C',
+    surface: '#080D1A',
+    surfaceAlt: '#0E1530',
+    text: palette.star,
+    textMuted: 'rgba(235,240,255,0.55)',
+    border: 'rgba(235,240,255,0.06)',
+    primary: palette.moon,
+    secondary: palette.plasma,
+    accent: palette.nebula,
+    success: palette.ok,
+    warning: palette.warn,
+    danger: palette.alert,
+    info: palette.earth,
+    chart: {
+      grid: 'rgba(235,240,255,0.06)',
+      axis: 'rgba(235,240,255,0.35)',
+      water: palette.earth,
+      energy: palette.moon,
+      oxygen: palette.plasma,
+      food: palette.ok,
+    },
+  },
+} as const;
+
+export type ColorScheme = keyof typeof colors;
+export type ThemeColors = (typeof colors)['light'];
