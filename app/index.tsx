@@ -9,37 +9,51 @@ import { spacing } from '@/theme/spacing';
 export default function HomeScreen() {
   const { colors } = useTheme();
   const router = useRouter();
-  const [dots, setDots] = useState('');
+  const [countdown, setCountdown] = useState(3);
 
   useEffect(() => {
     const id = setInterval(() => {
-      setDots((d) => (d.length >= 3 ? '' : d + '.'));
-    }, 500);
+      setCountdown((c) => {
+        if (c <= 1) {
+          clearInterval(id);
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 800);
     return () => clearInterval(id);
   }, []);
 
   return (
     <ThemedView variant="background" style={styles.container}>
       <View style={styles.content}>
-        <View style={styles.logoWrap}>
-          <Ionicons name="moon" size={72} color={colors.primary} />
-          <View style={[styles.ring, { borderColor: `${colors.primary}55` }]} />
+        <View style={styles.statusRow}>
+          <View style={[styles.indicator, { backgroundColor: colors.success }]} />
+          <ThemedText variant="label" color="textMuted">SYSTEM ONLINE</ThemedText>
         </View>
-        <ThemedText variant="h1" align="center" style={{ marginTop: spacing.xl }}>
-          LunarBase
-        </ThemedText>
-        <ThemedText variant="body" color="textMuted" align="center">
-          Resource Manager
-        </ThemedText>
-        <ThemedText variant="caption" color="textMuted" align="center" style={{ marginTop: spacing.xs }}>
-          Global Solution 2026.1{'\n'}Mobile Development & IoT
-        </ThemedText>
 
-        <View style={styles.loadingRow}>
-          <Ionicons name="radio" size={16} color={colors.primary} />
-          <ThemedText variant="caption" color="textMuted">
-            Conectando com a base{dots}
-          </ThemedText>
+        <ThemedText variant="h1" style={{ fontSize: 28, letterSpacing: 4 }}>LUNARBASE</ThemedText>
+        <ThemedText variant="label" color="textMuted" style={{ letterSpacing: 2 }}>RESOURCE MANAGEMENT SYSTEM</ThemedText>
+
+        <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+        <View style={styles.dataGrid}>
+          <View style={styles.dataItem}>
+            <ThemedText variant="label" color="textMuted">BASE</ThemedText>
+            <ThemedText variant="mono" style={{ color: colors.primary }}>ALPHA-01</ThemedText>
+          </View>
+          <View style={styles.dataItem}>
+            <ThemedText variant="label" color="textMuted">STATUS</ThemedText>
+            <ThemedText variant="mono" style={{ color: colors.success }}>NOMINAL</ThemedText>
+          </View>
+          <View style={styles.dataItem}>
+            <ThemedText variant="label" color="textMuted">CREW</ThemedText>
+            <ThemedText variant="mono">04</ThemedText>
+          </View>
+          <View style={styles.dataItem}>
+            <ThemedText variant="label" color="textMuted">DAY</ThemedText>
+            <ThemedText variant="mono">{countdown > 0 ? countdown : '--'}</ThemedText>
+          </View>
         </View>
       </View>
 
@@ -47,43 +61,34 @@ export default function HomeScreen() {
         onPress={() => router.replace('/(tabs)/dashboard')}
         style={({ pressed }) => [
           styles.enterBtn,
-          { backgroundColor: colors.surface, borderColor: colors.border, opacity: pressed ? 0.7 : 1 },
+          {
+            backgroundColor: colors.primary,
+            opacity: pressed ? 0.8 : 1,
+          },
         ]}
       >
-        <ThemedText variant="body" style={{ color: colors.primary, fontWeight: '700' }}>
-          Entrar na base
-        </ThemedText>
-        <Ionicons name="arrow-forward" size={20} color={colors.primary} />
+        <ThemedText variant="label" style={{ color: '#000' }}>ENTER SYSTEM</ThemedText>
+        <Ionicons name="arrow-forward" size={16} color="#000" />
       </Pressable>
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: spacing.xl },
-  content: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
-  logoWrap: { position: 'relative', alignItems: 'center', justifyContent: 'center' },
-  ring: {
-    position: 'absolute',
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    borderWidth: 2,
-    top: '50%',
-    left: '50%',
-    marginTop: -55,
-    marginLeft: -55,
-  },
-  loadingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.xxl },
+  container: { flex: 1, padding: spacing.lg },
+  content: { flex: 1, justifyContent: 'center', gap: spacing.sm },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.lg },
+  indicator: { width: 8, height: 8, borderRadius: 4 },
+  divider: { height: 1, marginVertical: spacing.lg },
+  dataGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  dataItem: { width: '45%', gap: 2 },
   enterBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.md,
     paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.xl,
-    borderRadius: 16,
-    borderWidth: 1,
-    marginBottom: spacing.xl,
+    borderRadius: 5,
+    marginBottom: spacing.lg,
   },
 });

@@ -1,25 +1,24 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { useSimulation } from '@/context/SimulationContext';
 import { useResources } from '@/context/ResourcesContext';
-import { ThemedText, ThemedView, FormField, PrimaryButton, SectionHeader } from '@/components';
+import { ThemedText, ThemedView, FormField, SectionHeader, PrimaryButton } from '@/components';
 import { spacing } from '@/theme/spacing';
-import { dailyHistoryMock, initialResources } from '@/data/mockData';
+import { initialResources } from '@/data/mockData';
 
 export default function SimulationScreen() {
   const { colors } = useTheme();
   const { config, updateConfig } = useSimulation();
-  const { resources } = useResources();
   const router = useRouter();
 
   const [crew, setCrew] = useState(String(config.crewSize));
   const [days, setDays] = useState(String(config.days));
   const [running, setRunning] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [results, setResults] = useState<{ day: number; water: number; energy: number; oxygen: number; food: number }[]>([]);
+  const [results, setResults] = useState<{ day: number; water: number; energy: number; oxygen: number; food: number } | null>(null);
 
   async function runSimulation() {
     const crewN = parseInt(crew, 10);
@@ -29,9 +28,8 @@ export default function SimulationScreen() {
 
     setRunning(true);
     setProgress(0);
-    setResults([]);
+    setResults(null);
 
-    const out: typeof results = [];
     const current = {
       water: initialResources[0].current,
       energy: initialResources[1].current,
@@ -40,135 +38,113 @@ export default function SimulationScreen() {
     };
 
     for (let day = 1; day <= daysN; day++) {
-      await new Promise((r) => setTimeout(r, 50));
-      const consumption = {
+      await new Promise((r) => setTimeout(r, 30));
+      const base = {
         water: (initialResources[0].dailyConsumption * crewN) / 4,
         energy: (initialResources[1].dailyConsumption * crewN) / 4,
         oxygen: (initialResources[2].dailyConsumption * crewN) / 4,
         food: (initialResources[3].dailyConsumption * crewN) / 4,
       };
 
-      current.water = Math.max(0, current.water - consumption.water + (config.activeEvents.includes('supply') && day % 7 === 0 ? 60 : 0));
-      current.energy = Math.max(0, current.energy - consumption.energy + (config.activeEvents.includes('solar-storm') && day % 5 === 0 ? -30 : 0));
-      current.oxygen = Math.max(0, current.oxygen - consumption.oxygen);
-      current.food = Math.max(0, current.food - consumption.food);
+      current.water = Math.max(0, current.water - base.water + (config.activeEvents.includes('supply') && day % 7 === 0 ? 60 : 0));
+      current.energy = Math.max(0, current.energy - base.energy + (config.activeEvents.includes('solar-storm') && day % 5 === 0 ? -30 : 0));
+      current.oxygen = Math.max(0, current.oxygen - base.oxygen);
+      current.food = Math.max(0, current.food - base.food);
 
-      out.push({ day, ...current });
       setProgress(Math.round((day / daysN) * 100));
     }
 
-    setResults(out);
+    setResults({ day: daysN, ...current });
     setRunning(false);
   }
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxxl }}
+      contentContainerStyle={{ padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl }}
     >
-      <View style={styles.header}>
-        <Ionicons name="rocket" size={32} color={colors.primary} />
-        <ThemedText variant="h1">Simulacao</ThemedText>
+      {/* Header */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.sm }}>
+        <Pressable onPress={() => router.back()} style={{ padding: spacing.xs }}>
+          <Ionicons name="close" size={24} color={colors.text} />
+        </Pressable>
+        <ThemedText variant="h1">SIMULATION</ThemedText>
       </View>
 
-      <ThemedText variant="body" color="textMuted">
-        Configure os parametros e simule o consumo de recursos da base lunar ao longo do tempo
-      </ThemedText>
+      <ThemedText variant="caption" color="textMuted">Configure parameters and run consumption simulation</ThemedText>
 
-      <ThemedView variant="surface" padded="lg" rounded="lg" bordered>
-        <SectionHeader title="Parametros" />
-        <View style={styles.row}>
-          <FormField
-            label="Tamanho da tripulacao"
-            value={crew}
-            onChangeText={setCrew}
-            icon="people"
-            keyboardType="numeric"
-            placeholder="1-20"
-          />
-          <FormField
-            label="Duracao (dias)"
-            value={days}
-            onChangeText={setDays}
-            icon="calendar"
-            keyboardType="numeric"
-            placeholder="1-90"
-          />
-        </View>
-        <View style={styles.activeRow}>
-          <ThemedText variant="caption" color="textMuted">
-            Eventos ativos: {config.activeEvents.length}
-          </ThemedText>
-          <ThemedText variant="caption" color="primary" onPress={() => router.push('/(tabs)/settings')}>
-            Alterar
-          </ThemedText>
-        </View>
-      </ThemedView>
-
-      <View style={styles.actions}>
-        <PrimaryButton
-          title={running ? `Executando... ${progress}%` : 'Executar Simulacao'}
-          onPress={runSimulation}
-          variant="primary"
-          loading={running}
-          disabled={running}
-          icon={<Ionicons name="play" size={18} color={colors.background} />}
-          fullWidth
-        />
-      </View>
-
-      {running && (
-        <ThemedView variant="surface" padded="lg" rounded="lg" align="center">
-          <Ionicons name="sync" size={48} color={colors.primary} />
-          <ThemedText variant="body" style={{ marginTop: spacing.md }}>
-            Simulando dia {Math.round((progress / 100) * parseInt(days, 10))} de {days}...
-          </ThemedText>
-          <View style={[styles.progressBar, { backgroundColor: colors.surfaceAlt }]}>
-            <View style={[styles.progressFill, { width: `${progress}%`, backgroundColor: colors.primary }]} />
+      {/* Parameters */}
+      <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, padding: spacing.md }}>
+        <SectionHeader title="PARAMETERS" dense />
+        <View style={{ flexDirection: 'row', gap: spacing.md }}>
+          <View style={{ flex: 1 }}>
+            <FormField label="CREW SIZE" value={crew} onChangeText={setCrew} icon="people" keyboardType="numeric" placeholder="1-20" />
           </View>
-        </ThemedView>
+          <View style={{ flex: 1 }}>
+            <FormField label="DURATION (DAYS)" value={days} onChangeText={setDays} icon="calendar" keyboardType="numeric" placeholder="1-90" />
+          </View>
+        </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.sm }}>
+          <ThemedText variant="caption" color="textMuted">Active events: {config.activeEvents.length}</ThemedText>
+          <ThemedText variant="caption" color="primary" onPress={() => router.push('/(tabs)/settings')}>CONFIGURE</ThemedText>
+        </View>
+      </View>
+
+      {/* Run Button */}
+      <Pressable
+        onPress={runSimulation}
+        disabled={running}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: spacing.md,
+          backgroundColor: running ? colors.surfaceAlt : colors.primary,
+          paddingVertical: spacing.md,
+          borderRadius: 5,
+        }}
+      >
+        <Ionicons name={running ? 'sync' : 'play'} size={18} color={running ? colors.textMuted : '#000'} />
+        <ThemedText variant="body" style={{ color: running ? colors.textMuted : '#000', fontWeight: '700' }}>
+          {running ? `RUNNING... ${progress}%` : 'RUN SIMULATION'}
+        </ThemedText>
+      </Pressable>
+
+      {/* Progress */}
+      {running && (
+        <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, padding: spacing.md }}>
+          <ThemedText variant="label" color="textMuted">PROGRESS</ThemedText>
+          <View style={{ height: 6, backgroundColor: colors.surfaceAlt, borderRadius: 3, marginTop: spacing.sm, overflow: 'hidden' }}>
+            <View style={{ width: `${progress}%`, height: '100%', backgroundColor: colors.primary, borderRadius: 3 }} />
+          </View>
+          <ThemedText variant="caption" color="textMuted" style={{ marginTop: spacing.xs }}>
+            Simulating day {Math.round((progress / 100) * parseInt(days || '1', 10))} of {days}...
+          </ThemedText>
+        </View>
       )}
 
-      {results.length > 0 && !running && (
-        <>
-          <SectionHeader title="Resultados" subtitle={`Simulacao de ${results.length} dias`} />
-          <ThemedView variant="surface" padded="lg" rounded="lg" bordered>
-            {results.slice(-1).map((r) => (
-              <View key="final">
-                <ThemedText variant="h3">Estado Final (Dia {r.day})</ThemedText>
-                <View style={styles.resultRow}>
-                  <ThemedText variant="body" color="textMuted">Agua:</ThemedText>
-                  <ThemedText variant="h3" color={r.water < 50 ? 'warning' : 'success'}>{r.water.toFixed(1)} L</ThemedText>
-                </View>
-                <View style={styles.resultRow}>
-                  <ThemedText variant="body" color="textMuted">Energia:</ThemedText>
-                  <ThemedText variant="h3" color={r.energy < 30 ? 'warning' : 'success'}>{r.energy.toFixed(1)} kWh</ThemedText>
-                </View>
-                <View style={styles.resultRow}>
-                  <ThemedText variant="body" color="textMuted">Oxigenio:</ThemedText>
-                  <ThemedText variant="h3" color={r.oxygen < 10 ? 'warning' : 'success'}>{r.oxygen.toFixed(1)} kg</ThemedText>
-                </View>
-                <View style={styles.resultRow}>
-                  <ThemedText variant="body" color="textMuted">Alimentos:</ThemedText>
-                  <ThemedText variant="h3" color={r.food < 20 ? 'warning' : 'success'}>{r.food.toFixed(1)} kg</ThemedText>
-                </View>
-              </View>
-            ))}
-          </ThemedView>
-
-          <ThemedView variant="surface" padded="lg" rounded="lg" align="center">
-            <Ionicons name="checkmark-circle" size={48} color={colors.success} />
-            <ThemedText variant="h3" align="center" style={{ marginTop: spacing.md }}>
-              Simulacao concluida
-            </ThemedText>
-            <ThemedText variant="body" color="textMuted" align="center">
-              Verifique os recursos finais. Se algum estiver em nivel critico, considere agendar reabastecimento.
-            </ThemedText>
-          </ThemedView>
-        </>
+      {/* Results */}
+      {results && !running && (
+        <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, padding: spacing.md }}>
+          <SectionHeader title={`FINAL STATE - DAY ${results.day}`} dense />
+          {[
+            { label: 'H2O (WATER)', value: results.water, unit: 'L', color: colors.chart.water },
+            { label: 'PWR (ENERGY)', value: results.energy, unit: 'kWh', color: colors.chart.energy },
+            { label: 'O2 (OXYGEN)', value: results.oxygen, unit: 'kg', color: colors.chart.oxygen },
+            { label: 'FOOD', value: results.food, unit: 'kg', color: colors.chart.food },
+          ].map((item) => (
+            <View key={item.label} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+              <ThemedText variant="label" color="textMuted">{item.label}</ThemedText>
+              <ThemedText variant="data" style={{ color: item.color }}>
+                {item.value.toFixed(1)}
+                <ThemedText variant="caption" color="textMuted"> {item.unit}</ThemedText>
+              </ThemedText>
+            </View>
+          ))}
+        </View>
       )}
 
-      <PrimaryButton title="Voltar" onPress={() => router.back()} variant="ghost" />
+      <PrimaryButton title="BACK" onPress={() => router.back()} variant="ghost" />
     </ScrollView>
   );
 }
@@ -176,7 +152,6 @@ export default function SimulationScreen() {
 const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   row: { flexDirection: 'row', gap: spacing.md },
-  activeRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.md },
   actions: { gap: spacing.md },
   progressBar: { width: '100%', height: 8, borderRadius: 999, marginTop: spacing.md, overflow: 'hidden' },
   progressFill: { height: '100%', borderRadius: 999 },

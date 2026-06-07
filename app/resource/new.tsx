@@ -1,18 +1,18 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { useResources } from '@/context/ResourcesContext';
-import { ThemedText, ThemedView, FormField, PrimaryButton, SectionHeader } from '@/components';
+import { ThemedText, ThemedView, FormField, SectionHeader, PrimaryButton } from '@/components';
 import { spacing } from '@/theme/spacing';
 import type { ResourceKind, FormErrors } from '@/types';
 
-const KINDS: { label: string; value: ResourceKind }[] = [
-  { label: 'Agua', value: 'water' },
-  { label: 'Energia', value: 'energy' },
-  { label: 'Oxigenio', value: 'oxygen' },
-  { label: 'Alimento', value: 'food' },
+const KINDS: { label: string; value: ResourceKind; color: string }[] = [
+  { label: 'H2O', value: 'water', color: '#3498DB' },
+  { label: 'PWR', value: 'energy', color: '#E8A838' },
+  { label: 'O2', value: 'oxygen', color: '#2ECC71' },
+  { label: 'FOOD', value: 'food', color: '#9B59B6' },
 ];
 
 export default function NewResourceScreen() {
@@ -31,16 +31,16 @@ export default function NewResourceScreen() {
 
   function validate(): boolean {
     const e: FormErrors = {};
-    if (!name.trim()) e.name = 'Nome e obrigatorio';
-    if (!unit.trim()) e.unit = 'Unidade e obrigatoria';
+    if (!name.trim()) e.name = 'Required';
+    if (!unit.trim()) e.unit = 'Required';
     const c = parseFloat(current);
-    if (isNaN(c) || c < 0) e.current = 'Valor atual invalido';
+    if (isNaN(c) || c < 0) e.current = 'Invalid value';
     const cap = parseFloat(capacity);
-    if (isNaN(cap) || cap <= 0) e.capacity = 'Capacidade invalida';
-    if (c > cap) e.current = 'Valor atual nao pode exceder capacidade';
+    if (isNaN(cap) || cap <= 0) e.capacity = 'Invalid capacity';
+    if (!isNaN(c) && !isNaN(cap) && c > cap) e.current = 'Exceeds capacity';
     const dc = parseFloat(dailyConsumption);
-    if (isNaN(dc) || dc < 0) e.dailyConsumption = 'Consumo diario invalido';
-    if (!source.trim()) e.source = 'Fonte e obrigatoria';
+    if (isNaN(dc) || dc < 0) e.dailyConsumption = 'Invalid consumption';
+    if (!source.trim()) e.source = 'Required';
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -64,108 +64,64 @@ export default function NewResourceScreen() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxxl }}
+      contentContainerStyle={{ padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl }}
     >
-      <View style={styles.header}>
-        <Ionicons name="add-circle" size={32} color={colors.primary} />
-        <ThemedText variant="h1">Novo Recurso</ThemedText>
+      {/* Header */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.sm }}>
+        <Pressable onPress={() => router.back()} style={{ padding: spacing.xs }}>
+          <Ionicons name="close" size={24} color={colors.text} />
+        </Pressable>
+        <ThemedText variant="h1">NEW RESOURCE</ThemedText>
       </View>
 
-      <ThemedText variant="caption" color="textMuted">
-        Adicione um novo recurso vital para monitoramento da base lunar
-      </ThemedText>
-
-      <ThemedView variant="surface" padded="lg" rounded="lg" bordered>
-        <ThemedText variant="h3" style={{ marginBottom: spacing.md }}>Tipo</ThemedText>
-        <View style={styles.kindRow}>
+      {/* Kind Selector */}
+      <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, padding: spacing.md }}>
+        <ThemedText variant="label" color="textMuted" style={{ marginBottom: spacing.sm }}>RESOURCE TYPE</ThemedText>
+        <View style={{ flexDirection: 'row', gap: spacing.sm }}>
           {KINDS.map((k) => (
-            <ThemedView
+            <Pressable
               key={k.value}
-              variant={kind === k.value ? 'surfaceAlt' : 'surface'}
-              padded="sm"
-              rounded="md"
-              onTouchEnd={() => setKind(k.value)}
-              style={{ flex: 1, alignItems: 'center', opacity: kind === k.value ? 1 : 0.6 }}
+              onPress={() => setKind(k.value)}
+              style={{
+                flex: 1,
+                paddingVertical: spacing.md,
+                alignItems: 'center',
+                borderRadius: 5,
+                backgroundColor: kind === k.value ? k.color + '33' : colors.surfaceAlt,
+                borderWidth: 1,
+                borderColor: kind === k.value ? k.color : colors.border,
+              }}
             >
-              <ThemedText variant="caption" color={kind === k.value ? 'primary' : 'textMuted'}>
-                {k.label}
-              </ThemedText>
-            </ThemedView>
+              <View style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: k.color, marginBottom: 4 }} />
+              <ThemedText variant="label" style={{ color: kind === k.value ? k.color : colors.textMuted }}>{k.label}</ThemedText>
+            </Pressable>
           ))}
         </View>
-      </ThemedView>
+      </View>
 
-      <ThemedView variant="surface" padded="lg" rounded="lg" bordered>
-        <SectionHeader title="Dados do Recurso" />
-        <View style={styles.form}>
-          <FormField
-            label="Nome do recurso"
-            value={name}
-            onChangeText={setName}
-            error={errors.name}
-            icon="pricetag"
-            placeholder="Ex: Reserva de Agua"
-          />
-          <FormField
-            label="Unidade"
-            value={unit}
-            onChangeText={setUnit}
-            error={errors.unit}
-            icon="resize"
-            placeholder="Ex: L, kWh, kg"
-          />
-          <View style={styles.row}>
+      {/* Form */}
+      <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, padding: spacing.md }}>
+        <SectionHeader title="RESOURCE DATA" dense />
+        <View style={{ gap: spacing.md }}>
+          <FormField label="NAME" value={name} onChangeText={setName} error={errors.name} icon="pricetag" placeholder="e.g. Water Reserve" />
+          <FormField label="UNIT" value={unit} onChangeText={setUnit} error={errors.unit} icon="resize" placeholder="e.g. L, kWh, kg" />
+          <View style={{ flexDirection: 'row', gap: spacing.md }}>
             <View style={{ flex: 1 }}>
-              <FormField
-                label="Valor atual"
-                value={current}
-                onChangeText={setCurrent}
-                error={errors.current}
-                icon="speedometer"
-                placeholder="Ex: 420"
-                keyboardType="numeric"
-              />
+              <FormField label="CURRENT VALUE" value={current} onChangeText={setCurrent} error={errors.current} icon="speedometer" placeholder="e.g. 420" keyboardType="numeric" />
             </View>
             <View style={{ flex: 1 }}>
-              <FormField
-                label="Capacidade"
-                value={capacity}
-                onChangeText={setCapacity}
-                error={errors.capacity}
-                icon="cube"
-                placeholder="Ex: 800"
-                keyboardType="numeric"
-              />
+              <FormField label="MAX CAPACITY" value={capacity} onChangeText={setCapacity} error={errors.capacity} icon="cube" placeholder="e.g. 800" keyboardType="numeric" />
             </View>
           </View>
-          <FormField
-            label="Consumo diario"
-            value={dailyConsumption}
-            onChangeText={setDailyConsumption}
-            error={errors.dailyConsumption}
-            icon="trending-down"
-            placeholder="Ex: 28"
-            keyboardType="numeric"
-          />
-          <FormField
-            label="Fonte / Origem"
-            value={source}
-            onChangeText={setSource}
-            error={errors.source}
-            icon="location"
-            placeholder="Ex: Reciclador ECLSS"
-          />
+          <FormField label="DAILY CONSUMPTION" value={dailyConsumption} onChangeText={setDailyConsumption} error={errors.dailyConsumption} icon="trending-down" placeholder="e.g. 28" keyboardType="numeric" />
+          <FormField label="SOURCE / ORIGIN" value={source} onChangeText={setSource} error={errors.source} icon="location" placeholder="e.g. ECLSS Module A" />
         </View>
-      </ThemedView>
+      </View>
 
-      <View style={styles.actions}>
-        <PrimaryButton title="Cancelar" onPress={() => router.back()} variant="secondary" />
-        <PrimaryButton
-          title="Salvar Recurso"
-          onPress={handleSubmit}
-          variant="primary"
-          icon={<Ionicons name="checkmark" size={18} color={colors.background} />}
-        />
+      {/* Actions */}
+      <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+        <PrimaryButton title="CANCEL" onPress={() => router.back()} variant="secondary" fullWidth />
+        <PrimaryButton title="SAVE" onPress={handleSubmit} variant="primary" fullWidth icon={<Ionicons name="checkmark" size={16} color="#000" />} />
       </View>
     </ScrollView>
   );

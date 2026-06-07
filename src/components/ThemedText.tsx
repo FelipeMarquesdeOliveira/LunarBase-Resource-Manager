@@ -1,4 +1,4 @@
-import { StyleSheet, Text, type TextProps, type TextStyle } from 'react-native';
+import { Text, type TextProps, type TextStyle, StyleSheet } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { typography } from '@/theme/spacing';
 
@@ -6,29 +6,41 @@ type Variant = keyof typeof typography;
 
 interface ThemedTextProps extends TextProps {
   variant?: Variant;
-  color?: 'text' | 'textMuted' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger';
+  color?: 'text' | 'textMuted' | 'textDim' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger';
   align?: TextStyle['textAlign'];
+  uppercase?: boolean;
 }
 
-export function ThemedText({ variant = 'body', color = 'text', align, style, ...rest }: ThemedTextProps) {
+export function ThemedText({
+  variant = 'body',
+  color = 'text',
+  align,
+  uppercase,
+  style,
+  ...rest
+}: ThemedTextProps) {
   const { colors } = useTheme();
   const palette: Record<NonNullable<ThemedTextProps['color']>, string> = {
     text: colors.text,
     textMuted: colors.textMuted,
+    textDim: colors.textDim,
     primary: colors.primary,
     secondary: colors.secondary,
     success: colors.success,
     warning: colors.warning,
     danger: colors.danger,
   };
+
+  const textStyle = typography[variant];
+
   return (
     <Text
       {...rest}
       style={[
-        styles.base,
-        typography[variant],
+        textStyle,
         { color: palette[color] },
         align ? { textAlign: align } : null,
+        uppercase ? styles.uppercase : null,
         style,
       ]}
     />
@@ -36,7 +48,5 @@ export function ThemedText({ variant = 'body', color = 'text', align, style, ...
 }
 
 const styles = StyleSheet.create({
-  base: {
-    color: '#fff',
-  },
+  uppercase: { textTransform: 'uppercase' },
 });

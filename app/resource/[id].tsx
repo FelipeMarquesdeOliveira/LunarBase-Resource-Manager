@@ -1,25 +1,25 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { useResources } from '@/context/ResourcesContext';
-import {
-  ThemedText,
-  ThemedView,
-  CriticalityBadge,
-  ProgressBar,
-  SectionHeader,
-  PrimaryButton,
-} from '@/components';
+import { ThemedText, ThemedView, CriticalityBadge, ProgressBar, SectionHeader, PrimaryButton } from '@/components';
 import { spacing } from '@/theme/spacing';
-import { classify, autonomyDays, recommendReorder, kindLabel } from '@/utils/criticality';
-import { formatNumber, formatPercent, formatDate } from '@/utils/format';
+import { classify, autonomyDays, kindLabel } from '@/utils/criticality';
+import { formatNumber, formatDate } from '@/utils/format';
 import { dailyHistoryMock } from '@/data/mockData';
 import { LineChart } from 'react-native-chart-kit';
 import { Dimensions } from 'react-native';
 
 const W = Dimensions.get('window').width;
+
+const kindColor: Record<string, string> = {
+  water: '#3498DB',
+  energy: '#E8A838',
+  oxygen: '#2ECC71',
+  food: '#9B59B6',
+};
 
 export default function ResourceDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -33,103 +33,77 @@ export default function ResourceDetailScreen() {
     return (
       <ThemedView variant="background" style={styles.centered}>
         <Ionicons name="alert-circle" size={64} color={colors.danger} />
-        <ThemedText variant="h2" align="center" style={{ marginTop: spacing.lg }}>
-          Recurso nao encontrado
-        </ThemedText>
-        <PrimaryButton title="Voltar" onPress={() => router.back()} />
+        <ThemedText variant="h2" align="center" style={{ marginTop: spacing.lg }}>RESOURCE NOT FOUND</ThemedText>
+        <PrimaryButton title="GO BACK" onPress={() => router.back()} />
       </ThemedView>
     );
   }
 
   const crit = classify(resource);
   const autonomy = autonomyDays(resource);
-  const reorder = recommendReorder(resource);
   const ratio = resource.capacity > 0 ? resource.current / resource.capacity : 0;
-  const tone = colors.chart[resource.kind];
+  const tone = kindColor[resource.kind] || colors.primary;
 
   const history = dailyHistoryMock.map((d) => ({
-    ...d,
-    value: d[resource.kind as keyof typeof d] as number,
+    labels: [`D${d.day}`],
+    datasets: [{ data: [d[resource.kind as keyof typeof d] as number] }],
   }));
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxxl }}
+      contentContainerStyle={{ padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl }}
     >
-      <View style={styles.back}>
-        <Ionicons name="arrow-back" size={24} color={colors.text} onPress={() => router.back()} />
-      </View>
-
-      <View style={styles.headerRow}>
-        <ThemedText variant="h1">{resource.name}</ThemedText>
+      {/* Header */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.sm }}>
+        <Pressable onPress={() => router.back()} style={{ padding: spacing.xs }}>
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
+        </Pressable>
+        <View style={{ flex: 1 }}>
+          <ThemedText variant="label" color="textMuted">{kindLabel[resource.kind].toUpperCase()}</ThemedText>
+          <ThemedText variant="h1">{resource.name}</ThemedText>
+        </View>
         <CriticalityBadge level={crit} />
       </View>
 
-      <ThemedText variant="body" color="textMuted">
-        {kindLabel[resource.kind]} - Atualizado em {formatDate(resource.updatedAt)}
-      </ThemedText>
-
-      <ThemedView variant="surface" padded="lg" rounded="lg" bordered>
-        <View style={styles.bigMetric}>
-          <ThemedText variant="h1" style={{ fontSize: 56 }}>
-            {formatNumber(resource.current)}
-          </ThemedText>
-          <ThemedText variant="h3" color="textMuted">
-            {resource.unit}
-          </ThemedText>
+      {/* Big Numbers */}
+      <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, padding: spacing.md }}>
+        <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: spacing.sm }}>
+          <ThemedText variant="dataLarge" style={{ color: tone }}>{formatNumber(resource.current)}</ThemedText>
+          <ThemedText variant="caption" color="textMuted" style={{ marginBottom: 6 }}>/ {formatNumber(resource.capacity, 0)} {resource.unit}</ThemedText>
         </View>
-        <View style={styles.row}>
-          <View style={styles.metric}>
-            <ThemedText variant="caption" color="textMuted">Capacidade</ThemedText>
-            <ThemedText variant="h3">{formatNumber(resource.capacity, 0)} {resource.unit}</ThemedText>
-          </View>
-          <View style={styles.metric}>
-            <ThemedText variant="caption" color="textMuted">Nivel</ThemedText>
-            <ThemedText variant="h3">{formatPercent(ratio)}</ThemedText>
-          </View>
-          <View style={styles.metric}>
-            <ThemedText variant="caption" color="textMuted">Autonomia</ThemedText>
-            <ThemedText variant="h3">
-              {Number.isFinite(autonomy) ? `${autonomy.toFixed(1)} dias` : '∞'}
-            </ThemedText>
-          </View>
-        </View>
-        <ProgressBar value={ratio} color={tone} height={12} />
-      </ThemedView>
+        <ProgressBar value={ratio} color={tone} height={6} showLabel />
+      </View>
 
-      <ThemedView variant="surface" padded="lg" rounded="lg" bordered>
-        <SectionHeader title="Consumo Diario" subtitle={`${resource.dailyConsumption} ${resource.unit}/dia`} />
-        <View style={styles.row}>
-          <View style={styles.metric}>
-            <ThemedText variant="caption" color="textMuted">Fonte</ThemedText>
-            <ThemedText variant="body">{resource.source}</ThemedText>
-          </View>
-        </View>
-      </ThemedView>
-
-      <ThemedView variant={reorder.shouldReorder ? 'surfaceAlt' : 'surface'} padded="lg" rounded="lg" bordered>
-        <View style={styles.row}>
-          <Ionicons
-            name={reorder.shouldReorder ? 'alert-circle' : 'checkmark-circle'}
-            size={24}
-            color={reorder.shouldReorder ? colors.warning : colors.success}
-          />
-          <ThemedText variant="body" style={{ flex: 1 }}>
-            {reorder.reason}
+      {/* Metrics Grid */}
+      <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+        <View style={[styles.metricBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <ThemedText variant="label" color="textMuted">AUTONOMY</ThemedText>
+          <ThemedText variant="data" style={{ color: autonomy < 5 ? colors.warning : colors.success }}>
+            {Number.isFinite(autonomy) ? `${autonomy.toFixed(0)}d` : '--'}
           </ThemedText>
         </View>
-      </ThemedView>
+        <View style={[styles.metricBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <ThemedText variant="label" color="textMuted">CONSUMPTION</ThemedText>
+          <ThemedText variant="data">{resource.dailyConsumption}</ThemedText>
+          <ThemedText variant="caption" color="textMuted">{resource.unit}/day</ThemedText>
+        </View>
+        <View style={[styles.metricBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <ThemedText variant="label" color="textMuted">UPDATED</ThemedText>
+          <ThemedText variant="caption" style={{ fontFamily: undefined }}>{formatDate(resource.updatedAt).split('/')[0]}</ThemedText>
+        </View>
+      </View>
 
-      <ThemedView variant="surface" padded="lg" rounded="lg" bordered>
-        <SectionHeader title="Historico" subtitle="Ultimos 7 dias" />
+      {/* Chart */}
+      <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, padding: spacing.md }}>
+        <SectionHeader title="HISTORY" subtitle="7-DAY TREND" dense />
         <LineChart
           data={{
-            labels: history.map((h) => `D${h.day}`),
-            datasets: [{ data: history.map((h) => h.value) }],
+            labels: dailyHistoryMock.map((d) => `D${d.day}`),
+            datasets: [{ data: dailyHistoryMock.map((d) => d[resource.kind as keyof typeof d] as number) }],
           }}
-          width={W - spacing.lg * 4}
-          height={160}
+          width={W - spacing.md * 4}
+          height={120}
           chartConfig={{
             backgroundColor: colors.surface,
             backgroundGradientFrom: colors.surface,
@@ -138,25 +112,53 @@ export default function ResourceDetailScreen() {
             color: () => tone,
             labelColor: () => colors.textMuted,
             propsForBackgroundLines: { stroke: colors.chart.grid, strokeDasharray: '' },
+            propsForLabels: { fontSize: 10 },
           }}
-          bezier
-          style={{ marginLeft: -spacing.md }}
+          bezier={false}
+          style={{ marginLeft: -spacing.sm }}
         />
-      </ThemedView>
+      </View>
 
-      <View style={styles.actions}>
-        <PrimaryButton
-          title="Ajustar -10"
+      {/* Source */}
+      <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, padding: spacing.md }}>
+        <ThemedText variant="label" color="textMuted">SOURCE / ORIGIN</ThemedText>
+        <ThemedText variant="body" style={{ marginTop: spacing.xs }}>{resource.source}</ThemedText>
+      </View>
+
+      {/* Actions */}
+      <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+        <Pressable
           onPress={() => adjustResource(resource.id, -10)}
-          variant="secondary"
-          icon={<Ionicons name="remove" size={18} color={colors.text} />}
-        />
-        <PrimaryButton
-          title="Ajustar +10"
+          style={{
+            flex: 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: spacing.sm,
+            backgroundColor: colors.danger,
+            paddingVertical: spacing.md,
+            borderRadius: 5,
+          }}
+        >
+          <Ionicons name="remove" size={18} color="#fff" />
+          <ThemedText variant="body" style={{ color: '#fff', fontWeight: '700' }}>-10</ThemedText>
+        </Pressable>
+        <Pressable
           onPress={() => adjustResource(resource.id, 10)}
-          variant="primary"
-          icon={<Ionicons name="add" size={18} color={colors.background} />}
-        />
+          style={{
+            flex: 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: spacing.sm,
+            backgroundColor: colors.success,
+            paddingVertical: spacing.md,
+            borderRadius: 5,
+          }}
+        >
+          <Ionicons name="add" size={18} color="#fff" />
+          <ThemedText variant="body" style={{ color: '#fff', fontWeight: '700' }}>+10</ThemedText>
+        </Pressable>
       </View>
     </ScrollView>
   );
@@ -164,10 +166,10 @@ export default function ResourceDetailScreen() {
 
 const styles = StyleSheet.create({
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg },
-  back: { marginBottom: spacing.md },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  bigMetric: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm, marginBottom: spacing.lg },
-  row: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.md },
-  metric: { flex: 1, gap: 2 },
-  actions: { flexDirection: 'row', gap: spacing.md },
+  metricBox: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: spacing.sm,
+  },
 });

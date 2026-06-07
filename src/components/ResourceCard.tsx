@@ -1,89 +1,83 @@
+import { Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, View } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
-import { radius, spacing } from '@/theme/spacing';
-import { autonomyDays, classify, kindIcon, kindLabel, recommendReorder } from '@/utils/criticality';
-import { formatNumber, formatPercent } from '@/utils/format';
+import { spacing } from '@/theme/spacing';
+import { classify, autonomyDays, kindIcon, kindLabel } from '@/utils/criticality';
+import { formatNumber } from '@/utils/format';
 import type { Resource } from '@/types';
 import { CriticalityBadge } from './CriticalityBadge';
 import { ProgressBar } from './ProgressBar';
 import { ThemedText } from './ThemedText';
-import { ThemedView } from './ThemedView';
 
 interface Props {
   resource: Resource;
   onPress?: () => void;
+  compact?: boolean;
 }
 
-export function ResourceCard({ resource, onPress }: Props) {
+const kindColor: Record<Resource['kind'], string> = {
+  water: '#3498DB',
+  energy: '#E8A838',
+  oxygen: '#2ECC71',
+  food: '#9B59B6',
+};
+
+export function ResourceCard({ resource, onPress, compact = false }: Props) {
   const { colors } = useTheme();
   const crit = classify(resource);
   const autonomy = autonomyDays(resource);
-  const reorder = recommendReorder(resource);
   const ratio = resource.capacity > 0 ? resource.current / resource.capacity : 0;
-  const tone = colors.chart[resource.kind];
+  const tone = kindColor[resource.kind];
+
+  if (compact) {
+    return (
+      <Pressable onPress={onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: tone }} />
+        <View style={{ flex: 1 }}>
+          <ThemedText variant="body">{resource.name}</ThemedText>
+          <ThemedText variant="caption" color="textMuted">{formatNumber(resource.current, 0)} / {formatNumber(resource.capacity, 0)} {resource.unit}</ThemedText>
+        </View>
+        <CriticalityBadge level={crit} size="sm" />
+      </Pressable>
+    );
+  }
 
   return (
-    <Pressable onPress={onPress} android_ripple={{ color: colors.border }}>
-      <ThemedView variant="surface" padded="lg" gap="md" rounded="lg" bordered>
-        <View style={styles.headerRow}>
-          <View style={[styles.iconWrap, { backgroundColor: `${tone}22` }]}>
-            <Ionicons name={kindIcon[resource.kind] as any} size={20} color={tone} />
-          </View>
-          <View style={styles.headerText}>
-            <ThemedText variant="h3">{resource.name}</ThemedText>
-            <ThemedText variant="caption" color="textMuted">
-              {kindLabel[resource.kind]} - {resource.source}
-            </ThemedText>
-          </View>
-          <CriticalityBadge level={crit} size="sm" />
+    <Pressable onPress={onPress} style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, padding: spacing.md, marginBottom: spacing.sm }}>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: spacing.md }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+          <View style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: tone }} />
+          <ThemedText variant="h3">{resource.name}</ThemedText>
         </View>
+        <CriticalityBadge level={crit} size="sm" />
+      </View>
 
-        <View style={styles.row}>
-          <View style={styles.metric}>
-            <ThemedText variant="h2">{formatNumber(resource.current)}</ThemedText>
-            <ThemedText variant="caption" color="textMuted">
-              {resource.unit} de {formatNumber(resource.capacity, 0)}
-            </ThemedText>
-          </View>
-          <View style={styles.metric}>
-            <ThemedText variant="h2">{formatPercent(ratio)}</ThemedText>
-            <ThemedText variant="caption" color="textMuted">Nivel atual</ThemedText>
-          </View>
-          <View style={styles.metric}>
-            <ThemedText variant="h2">{Number.isFinite(autonomy) ? `${autonomy.toFixed(1)}d` : '∞'}</ThemedText>
-            <ThemedText variant="caption" color="textMuted">Autonomia</ThemedText>
-          </View>
+      <View style={{ flexDirection: 'row', gap: spacing.xl, marginBottom: spacing.md }}>
+        <View>
+          <ThemedText variant="label" color="textMuted">ATUAL</ThemedText>
+          <ThemedText variant="data" style={{ color: tone }}>{formatNumber(resource.current)}</ThemedText>
+          <ThemedText variant="caption" color="textMuted">{resource.unit}</ThemedText>
         </View>
-
-        <ProgressBar value={ratio} color={tone} />
-
-        <View style={styles.footer}>
-          <ThemedText variant="caption" color={reorder.shouldReorder ? 'warning' : 'textMuted'}>
-            {reorder.reason}
+        <View>
+          <ThemedText variant="label" color="textMuted">MAX</ThemedText>
+          <ThemedText variant="data">{formatNumber(resource.capacity, 0)}</ThemedText>
+          <ThemedText variant="caption" color="textMuted">{resource.unit}</ThemedText>
+        </View>
+        <View>
+          <ThemedText variant="label" color="textMuted">AUTONOMIA</ThemedText>
+          <ThemedText variant="data" style={{ color: autonomy < 5 ? colors.warning : colors.success }}>
+            {Number.isFinite(autonomy) ? `${autonomy.toFixed(0)}d` : '--'}
           </ThemedText>
-          {reorder.shouldReorder ? (
-            <Ionicons name="alert-circle" size={16} color={colors.warning} />
-          ) : (
-            <Ionicons name="checkmark-circle" size={16} color={colors.success} />
-          )}
+          <ThemedText variant="caption" color="textMuted">dias</ThemedText>
         </View>
-      </ThemedView>
+      </View>
+
+      <ProgressBar value={ratio} color={tone} showLabel />
+
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.sm }}>
+        <ThemedText variant="caption" color="textMuted">{resource.source}</ThemedText>
+        <ThemedText variant="mono" color="textMuted">{resource.dailyConsumption} {resource.unit}/dia</ThemedText>
+      </View>
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  headerText: { flex: 1, gap: 2 },
-  iconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  row: { flexDirection: 'row', gap: spacing.lg },
-  metric: { flex: 1, gap: 2 },
-  footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
-});

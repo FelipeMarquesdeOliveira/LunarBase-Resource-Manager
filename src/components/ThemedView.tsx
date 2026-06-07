@@ -1,8 +1,8 @@
-import { StyleSheet, View, type ViewProps, type ViewStyle } from 'react-native';
+import { View, type ViewProps, StyleSheet } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { radius, spacing } from '@/theme/spacing';
 
-type Variant = 'background' | 'surface' | 'surfaceAlt';
+type Variant = 'background' | 'surface' | 'surfaceAlt' | 'surfaceHigh';
 type Padding = keyof typeof spacing;
 
 interface ThemedViewProps extends ViewProps {
@@ -18,7 +18,7 @@ interface ThemedViewProps extends ViewProps {
 export function ThemedView({
   variant = 'background',
   padded,
-  rounded = 'lg',
+  rounded = 'md',
   bordered,
   gap,
   row,
@@ -28,7 +28,12 @@ export function ThemedView({
   ...rest
 }: ThemedViewProps) {
   const { colors } = useTheme();
-  const palette = { background: colors.background, surface: colors.surface, surfaceAlt: colors.surfaceAlt };
+  const palette = {
+    background: colors.background,
+    surface: colors.surface,
+    surfaceAlt: colors.surfaceAlt,
+    surfaceHigh: colors.surfaceHigh,
+  };
 
   const padding =
     typeof padded === 'boolean' ? (padded ? spacing.lg : 0) : padded ? spacing[padded] : undefined;
@@ -38,10 +43,10 @@ export function ThemedView({
       {...rest}
       style={[
         { backgroundColor: palette[variant], borderRadius: radius[rounded] },
-        bordered ? { borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border } : null,
+        bordered ? { borderWidth: 1, borderColor: colors.border } : null,
         padding !== undefined ? { padding } : null,
         row ? styles.row : null,
-        align ? { alignSelf: align === 'center' ? 'center' : align === 'end' ? 'flex-end' : 'flex-start' } : null,
+        align === 'center' ? { alignItems: 'center' } : align === 'end' ? { alignItems: 'flex-end' } : null,
         gap ? { gap: spacing[gap] } : null,
         style,
       ]}

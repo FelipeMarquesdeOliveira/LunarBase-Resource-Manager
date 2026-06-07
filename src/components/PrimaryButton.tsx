@@ -1,12 +1,12 @@
-import { Pressable, StyleSheet, ActivityIndicator, View } from 'react-native';
+import { Pressable, Text, StyleSheet, ActivityIndicator, View } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
-import { radius, spacing } from '@/theme/spacing';
-import { ThemedText } from './ThemedText';
+import { spacing, radius } from '@/theme/spacing';
 
 interface Props {
   title: string;
   onPress: () => void;
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   disabled?: boolean;
   icon?: React.ReactNode;
@@ -17,45 +17,61 @@ export function PrimaryButton({
   title,
   onPress,
   variant = 'primary',
+  size = 'md',
   loading,
   disabled,
   icon,
   fullWidth,
 }: Props) {
   const { colors } = useTheme();
+
   const palette = {
-    primary: { bg: colors.primary, fg: colors.background, border: 'transparent' },
-    secondary: { bg: colors.surface, fg: colors.text, border: colors.border },
-    ghost: { bg: 'transparent', fg: colors.text, border: 'transparent' },
-    danger: { bg: colors.danger, fg: '#fff', border: 'transparent' },
-  } as const;
-  const tone = palette[variant];
-  const inactive = disabled || loading;
+    primary: { bg: colors.primary, fg: '#000', border: colors.primary },
+    secondary: { bg: 'transparent', fg: colors.text, border: colors.border },
+    ghost: { bg: 'transparent', fg: colors.textMuted, border: 'transparent' },
+    danger: { bg: colors.danger, fg: '#fff', border: colors.danger },
+  }[variant];
+
+  const heights = { sm: 32, md: 40, lg: 48 };
+  const h = heights[size];
 
   return (
     <Pressable
       onPress={onPress}
-      disabled={inactive}
+      disabled={disabled || loading}
       style={({ pressed }) => [
-        styles.btn,
         {
-          backgroundColor: tone.bg,
-          borderColor: tone.border,
-          borderWidth: tone.border === 'transparent' ? 0 : 1,
-          opacity: inactive ? 0.6 : pressed ? 0.85 : 1,
+          backgroundColor: palette.bg,
+          borderWidth: variant === 'secondary' ? 1 : 0,
+          borderColor: palette.border,
+          borderRadius: radius.sm,
+          paddingHorizontal: spacing.lg,
+          height: h,
+          justifyContent: 'center',
+          alignItems: 'center',
+          flexDirection: 'row',
+          opacity: disabled ? 0.4 : pressed ? 0.7 : 1,
           alignSelf: fullWidth ? 'stretch' : 'flex-start',
         },
       ]}
     >
-      <View style={styles.row}>
-        {loading ? <ActivityIndicator color={tone.fg} /> : icon}
-        <ThemedText
-          variant="body"
-          style={[styles.label, { color: tone.fg, fontWeight: '700' }]}
-        >
-          {title}
-        </ThemedText>
-      </View>
+      {loading ? (
+        <ActivityIndicator color={palette.fg} size="small" />
+      ) : (
+        <>
+          {icon}
+          <Text
+            style={{
+              color: palette.fg,
+              fontSize: size === 'sm' ? 12 : 14,
+              fontWeight: '600',
+              marginLeft: icon ? 6 : 0,
+            }}
+          >
+            {title}
+          </Text>
+        </>
+      )}
     </Pressable>
   );
 }

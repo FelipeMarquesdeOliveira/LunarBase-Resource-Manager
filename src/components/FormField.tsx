@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { StyleSheet, TextInput, TextInputProps, View } from 'react-native';
+import { TextInput, TextInputProps, View, StyleSheet } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { radius, spacing } from '@/theme/spacing';
 import { ThemedText } from './ThemedText';
@@ -16,10 +16,8 @@ export function FormField({ label, error, icon, ...rest }: Props) {
   const [focused, setFocused] = useState(false);
 
   return (
-    <View style={styles.wrap}>
-      <ThemedText variant="caption" color="textMuted" style={styles.label}>
-        {label}
-      </ThemedText>
+    <View style={{ gap: 4 }}>
+      <ThemedText variant="label" color="textMuted">{label}</ThemedText>
       <View
         style={[
           styles.inputWrap,
@@ -32,9 +30,9 @@ export function FormField({ label, error, icon, ...rest }: Props) {
         {icon ? (
           <Ionicons
             name={icon}
-            size={18}
+            size={16}
             color={focused ? colors.primary : colors.textMuted}
-            style={styles.icon}
+            style={{ marginRight: spacing.sm }}
           />
         ) : null}
         <TextInput
@@ -47,35 +45,29 @@ export function FormField({ label, error, icon, ...rest }: Props) {
             setFocused(false);
             rest.onBlur?.(e);
           }}
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={colors.textDim}
           style={[styles.input, { color: colors.text }]}
         />
       </View>
-      {error ? (
-        <ThemedText variant="caption" color="danger" style={styles.error}>
-          {error}
-        </ThemedText>
-      ) : null}
+      {error && (
+        <ThemedText variant="caption" color="danger">{error}</ThemedText>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: spacing.xs },
-  label: { marginLeft: 4 },
   inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: radius.md,
     borderWidth: 1,
+    borderRadius: radius.sm,
     paddingHorizontal: spacing.md,
-    minHeight: 48,
+    height: 44,
   },
-  icon: { marginRight: spacing.sm },
   input: {
     flex: 1,
-    fontSize: 15,
-    paddingVertical: spacing.sm,
+    fontSize: 14,
+    paddingVertical: 0,
   },
-  error: { marginLeft: 4 },
 });

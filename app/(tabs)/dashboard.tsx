@@ -4,14 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { useResources } from '@/context/ResourcesContext';
 import { useResourceStats } from '@/hooks/useResourceStats';
-import {
-  SectionHeader,
-  StatCard,
-  ResourceCard,
-  ThemedText,
-  ThemedView,
-  CriticalityBadge,
-} from '@/components';
+import { SectionHeader, StatCard, ResourceCard, ThemedText, ThemedView, CriticalityBadge } from '@/components';
 import { spacing } from '@/theme/spacing';
 import { worst } from '@/utils/criticality';
 import { formatNumber } from '@/utils/format';
@@ -23,99 +16,71 @@ const W = Dimensions.get('window').width;
 
 export default function DashboardScreen() {
   const { colors } = useTheme();
-  const { resources, ready } = useResources();
+  const { resources } = useResources();
   const { overall, totalAutonomy } = useResourceStats(resources);
   const router = useRouter();
 
-  const overallTone = (() => {
-    switch (overall) {
-      case 'depleted':
-      case 'critical':
-        return 'danger';
-      case 'attention':
-        return 'warning';
-      default:
-        return 'success';
-    }
-  })();
+  const overallLabel = overall === 'safe' ? 'NOMINAL' : overall === 'attention' ? 'ATTENTION' : overall === 'critical' ? 'CRITICAL' : 'FAILURE';
+  const overallTone: 'success' | 'warning' | 'danger' = overall === 'safe' ? 'success' : overall === 'attention' ? 'warning' : 'danger';
 
   const chartData = {
-    labels: dailyHistoryMock.slice(-6).map((d) => `D${d.day}`),
+    labels: dailyHistoryMock.slice(-5).map((d) => `D${d.day}`),
     datasets: [
       {
-        data: dailyHistoryMock.slice(-6).map((d) => d.water),
+        data: dailyHistoryMock.slice(-5).map((d) => d.water),
         color: () => colors.chart.water,
-        strokeWidth: 2,
+        strokeWidth: 1.5,
       },
       {
-        data: dailyHistoryMock.slice(-6).map((d) => d.energy),
+        data: dailyHistoryMock.slice(-5).map((d) => d.energy),
         color: () => colors.chart.energy,
-        strokeWidth: 2,
+        strokeWidth: 1.5,
       },
     ],
-    legend: ['Agua', 'Energia'],
+    legend: ['H2O', 'PWR'],
   };
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxxl }}
+      contentContainerStyle={{ padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl }}
       showsVerticalScrollIndicator={false}
     >
+      {/* Header */}
       <View style={styles.header}>
         <View>
-          <ThemedText variant="caption" color="textMuted">Base Lunar Alpha</ThemedText>
-          <ThemedText variant="h1">Dashboard</ThemedText>
+          <ThemedText variant="label" color="textMuted">LUNAR BASE ALPHA</ThemedText>
+          <ThemedText variant="h1">SYSTEM STATUS</ThemedText>
         </View>
         <CriticalityBadge level={overall} />
       </View>
 
-      <View style={styles.row}>
-        <StatCard
-          title="Autonomia Geral"
-          value={`${formatNumber(totalAutonomy, 0)} dias`}
-          caption="Menor recurso"
-          icon="time"
-          tone={totalAutonomy < 5 ? 'warning' : 'success'}
-        />
-        <StatCard
-          title="Tripulacao"
-          value="4"
-          caption="Ativos"
-          icon="people"
-          tone="info"
-        />
+      {/* Status Row */}
+      <View style={styles.statusRow}>
+        <View style={[styles.statusBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <ThemedText variant="label" color="textMuted">OVERALL</ThemedText>
+          <ThemedText variant="data" style={{ color: colors[overallTone] }}>{overallLabel}</ThemedText>
+        </View>
+        <View style={[styles.statusBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <ThemedText variant="label" color="textMuted">AUTONOMY</ThemedText>
+          <ThemedText variant="data" style={{ color: totalAutonomy < 5 ? colors.warning : colors.success }}>
+            {formatNumber(totalAutonomy, 0)}
+            <ThemedText variant="caption" color="textMuted"> DAYS</ThemedText>
+          </ThemedText>
+        </View>
+        <View style={[styles.statusBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <ThemedText variant="label" color="textMuted">CREW</ThemedText>
+          <ThemedText variant="data">4</ThemedText>
+        </View>
       </View>
 
-      <View style={styles.row}>
-        <StatCard
-          title="Eventos Hoje"
-          value="2"
-          caption="1 em andamento"
-          icon="alert"
-          tone="warning"
-        />
-        <StatCard
-          title="Status"
-          value={overall === 'safe' ? 'Estavel' : overall === 'attention' ? 'Atencao' : 'Alerta'}
-          caption="Nivel geral"
-          icon={overall === 'safe' ? 'checkmark-circle' : 'warning'}
-          tone={overallTone}
-        />
-      </View>
-
-      <ThemedView variant="surface" padded="lg" rounded="lg" bordered>
-        <SectionHeader
-          title="Historico de Recursos"
-          subtitle="Ultimos 6 dias"
-          right={
-            <View style={[styles.legendDot, { backgroundColor: colors.chart.water }]} />
-          }
-        />
+      {/* Chart */}
+      <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, padding: spacing.md }}>
+        <SectionHeader title="RESOURCE TRENDS" subtitle="5-DAY HISTORY" dense />
         <LineChart
           data={chartData}
-          width={W - spacing.lg * 4}
-          height={180}
+          width={W - spacing.md * 4}
+          height={140}
           chartConfig={{
             backgroundColor: colors.surface,
             backgroundGradientFrom: colors.surface,
@@ -123,61 +88,52 @@ export default function DashboardScreen() {
             decimalPlaces: 0,
             color: () => colors.primary,
             labelColor: () => colors.textMuted,
-            propsForBackgroundLines: {
-              stroke: colors.chart.grid,
-              strokeDasharray: '',
-            },
+            propsForBackgroundLines: { stroke: colors.chart.grid, strokeDasharray: '' },
+            propsForLabels: { fontSize: 10 },
           }}
-          bezier
-          style={{ marginLeft: -spacing.md }}
+          bezier={false}
+          style={{ marginLeft: -spacing.sm }}
         />
-      </ThemedView>
+      </View>
 
+      {/* Resources */}
       <SectionHeader
-        title="Recursos Ativos"
-        subtitle={`${resources.length} monitorados`}
+        title="ACTIVE RESOURCES"
         right={
-          <ThemedText
-            variant="caption"
-            color="primary"
-            onPress={() => router.push('/(tabs)/resources')}
-          >
-            Ver todos
+          <ThemedText variant="label" color="primary" onPress={() => router.push('/(tabs)/resources')}>
+            VIEW ALL
           </ThemedText>
         }
       />
 
       {resources.slice(0, 2).map((r) => (
-        <ResourceCard
-          key={r.id}
-          resource={r}
-          onPress={() => router.push(`/resource/${r.id}`)}
-        />
+        <ResourceCard key={r.id} resource={r} onPress={() => router.push(`/resource/${r.id}`)} />
       ))}
 
-      <ThemedView variant="surfaceAlt" padded="lg" rounded="lg" style={{ alignItems: 'center' }}>
-        <Ionicons name="rocket" size={32} color={colors.primary} />
-        <ThemedText variant="h3" align="center" style={{ marginTop: spacing.md }}>
-          Simulacao Disponivel
-        </ThemedText>
-        <ThemedText variant="caption" color="textMuted" align="center">
-          Configure parametros e simule o consumo da base lunar
-        </ThemedText>
-        <ThemedText
-          variant="body"
-          color="primary"
-          onPress={() => router.push('/simulation')}
-          style={{ marginTop: spacing.md }}
-        >
-          Iniciar Simulacao
-        </ThemedText>
-      </ThemedView>
+      {/* Simulation CTA */}
+      <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, padding: spacing.md }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+            <Ionicons name="options" size={20} color={colors.primary} />
+            <View>
+              <ThemedText variant="h3">SIMULATION MODE</ThemedText>
+              <ThemedText variant="caption" color="textMuted">Run consumption simulation</ThemedText>
+            </View>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textMuted} onPress={() => router.push('/simulation')} />
+        </View>
+      </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  row: { flexDirection: 'row', gap: spacing.md },
-  legendDot: { width: 12, height: 12, borderRadius: 6 },
+  header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: spacing.md },
+  statusRow: { flexDirection: 'row', gap: spacing.sm },
+  statusBox: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: spacing.md,
+  },
 });

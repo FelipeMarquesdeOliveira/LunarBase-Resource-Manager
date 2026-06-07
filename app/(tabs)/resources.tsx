@@ -1,69 +1,91 @@
 import { useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, View, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { useResources } from '@/context/ResourcesContext';
-import { SectionHeader, ResourceCard, ThemedView, ThemedText } from '@/components';
+import { SectionHeader, ResourceCard, ThemedText, ThemedView } from '@/components';
 import { spacing } from '@/theme/spacing';
 import type { ResourceKind } from '@/types';
 
 const FILTERS: { label: string; value: ResourceKind | 'all' }[] = [
-  { label: 'Todos', value: 'all' },
-  { label: 'Agua', value: 'water' },
-  { label: 'Energia', value: 'energy' },
-  { label: 'Oxigenio', value: 'oxygen' },
-  { label: 'Alimento', value: 'food' },
+  { label: 'ALL', value: 'all' },
+  { label: 'H2O', value: 'water' },
+  { label: 'PWR', value: 'energy' },
+  { label: 'O2', value: 'oxygen' },
+  { label: 'FOOD', value: 'food' },
 ];
 
 export default function ResourcesScreen() {
   const { colors } = useTheme();
   const { resources } = useResources();
+  const router = useRouter();
   const [filter, setFilter] = useState<ResourceKind | 'all'>('all');
 
   const filtered = filter === 'all' ? resources : resources.filter((r) => r.kind === filter);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.header}>
-        <ThemedText variant="h1">Recursos</ThemedText>
-        <ThemedText variant="caption" color="textMuted">
-          {resources.length} itens monitorados
-        </ThemedText>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <View style={{ padding: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+        <ThemedText variant="h1">RESOURCES</ThemedText>
+        <ThemedText variant="caption" color="textMuted">{resources.length} ACTIVE // {filtered.length} DISPLAYED</ThemedText>
       </View>
 
-      <View style={styles.filters}>
+      <View style={{ flexDirection: 'row', gap: spacing.xs, padding: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
         {FILTERS.map((f) => (
-          <ThemedView
+          <Pressable
             key={f.value}
-            variant={filter === f.value ? 'surfaceAlt' : 'surface'}
-            rounded="pill"
-            padded="sm"
-            onTouchEnd={() => setFilter(f.value)}
-            style={{ opacity: filter === f.value ? 1 : 0.6 }}
+            onPress={() => setFilter(f.value)}
+            style={{
+              paddingHorizontal: spacing.md,
+              paddingVertical: spacing.xs,
+              borderRadius: 3,
+              backgroundColor: filter === f.value ? colors.primary : colors.surface,
+              borderWidth: 1,
+              borderColor: filter === f.value ? colors.primary : colors.border,
+            }}
           >
-            <ThemedText variant="caption" color={filter === f.value ? 'primary' : 'textMuted'}>
+            <ThemedText
+              variant="label"
+              style={{ color: filter === f.value ? '#000' : colors.textMuted }}
+            >
               {f.label}
             </ThemedText>
-          </ThemedView>
+          </Pressable>
         ))}
+        <View style={{ flex: 1 }} />
+        <Pressable
+          onPress={() => router.push('/resource/new')}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 4,
+            paddingHorizontal: spacing.md,
+            paddingVertical: spacing.xs,
+            borderRadius: 3,
+            backgroundColor: colors.surfaceAlt,
+            borderWidth: 1,
+            borderColor: colors.border,
+          }}
+        >
+          <Ionicons name="add" size={14} color={colors.text} />
+          <ThemedText variant="label" color="textMuted">ADD</ThemedText>
+        </Pressable>
       </View>
 
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxxl }}
+        contentContainerStyle={{ padding: spacing.md, gap: spacing.sm, paddingBottom: spacing.xxl }}
         showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <ResourceCard resource={item} onPress={() => {}} />
-        )}
+        renderItem={({ item }) => <ResourceCard resource={item} onPress={() => router.push(`/resource/${item.id}`)} />}
         ListEmptyComponent={
-          <ThemedView variant="surface" padded="xl" align="center">
-            <Ionicons name="alert-circle-outline" size={48} color={colors.textMuted} />
-            <ThemedText variant="body" color="textMuted" align="center" style={{ marginTop: spacing.md }}>
-              Nenhum recurso encontrado
+          <View style={{ alignItems: 'center', padding: spacing.xl }}>
+            <Ionicons name="alert-circle-outline" size={40} color={colors.textDim} />
+            <ThemedText variant="caption" color="textMuted" style={{ marginTop: spacing.md }}>
+              NO RESOURCES MATCH FILTER
             </ThemedText>
-          </ThemedView>
+          </View>
         }
       />
     </View>
