@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ScrollView, StyleSheet, View, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useIsFocused } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { useTheme } from '@/context/ThemeContext';
 import { useResources } from '@/context/ResourcesContext';
 import { useResourceStats } from '@/hooks/useResourceStats';
-import { SectionHeader, ThemedText, ThemedView, CriticalityBadge } from '@/components';
+import { SectionHeader, ThemedText, CriticalityBadge } from '@/components';
 import { spacing } from '@/theme/spacing';
 import { classify, kindLabel } from '@/utils/criticality';
 import { formatNumber } from '@/utils/format';
@@ -31,16 +32,28 @@ const kindIcon: Record<string, keyof typeof Ionicons.glyphMap> = {
 };
 
 function AnimatedCard({ children, onPress, delay = 0 }: { children: React.ReactNode; onPress?: () => void; delay?: number }) {
-  const scale = useSharedValue(0.95);
+  const isFocused = useIsFocused();
+  const scale = useSharedValue(0.9);
   const opacity = useSharedValue(0);
 
-  useEffect(() => {
+  const triggerAnimation = useCallback(() => {
+    scale.value = 0.9;
+    opacity.value = 0;
     const timeout = setTimeout(() => {
-      scale.value = withSpring(1, { damping: 20, stiffness: 200 });
-      opacity.value = withSpring(1, { damping: 20, stiffness: 200 });
+      scale.value = withSpring(1, { damping: 18, stiffness: 180 });
+      opacity.value = withSpring(1, { damping: 18, stiffness: 180 });
     }, delay);
     return () => clearTimeout(timeout);
   }, [delay]);
+
+  useEffect(() => {
+    if (isFocused) {
+      return triggerAnimation();
+    } else {
+      scale.value = 0.9;
+      opacity.value = 0;
+    }
+  }, [isFocused, triggerAnimation]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
