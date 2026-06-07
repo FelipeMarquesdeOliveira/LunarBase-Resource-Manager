@@ -2,11 +2,38 @@ import { useState } from 'react';
 import { ScrollView, View, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, withDelay } from 'react-native-reanimated';
+import { useIsFocused } from '@react-navigation/native';
 import { useTheme } from '@/context/ThemeContext';
 import { useSimulation } from '@/context/SimulationContext';
 import { ThemedText, FormField, SectionHeader, PrimaryButton } from '@/components';
 import { spacing } from '@/theme/spacing';
 import { initialResources } from '@/data/mockData';
+
+import { useEffect } from 'react';
+
+function AnimatedSection({ children, delay = 0, style }: { children: React.ReactNode; delay?: number; style?: any }) {
+  const isFocused = useIsFocused();
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(10);
+
+  useEffect(() => {
+    if (isFocused) {
+      opacity.value = withDelay(delay, withSpring(1, { damping: 18, stiffness: 180 }));
+      translateY.value = withDelay(delay, withSpring(0, { damping: 18, stiffness: 180 }));
+    } else {
+      opacity.value = 0;
+      translateY.value = 10;
+    }
+  }, [isFocused]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  return <Animated.View style={[animatedStyle, style]}>{children}</Animated.View>;
+}
 
 export default function SimulationScreen() {
   const { colors } = useTheme();
@@ -63,87 +90,98 @@ export default function SimulationScreen() {
       contentContainerStyle={{ padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl }}
     >
       {/* Header */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.sm }}>
-        <Pressable onPress={() => router.back()} style={{ padding: spacing.xs }}>
-          <Ionicons name="close" size={24} color={colors.text} />
-        </Pressable>
-        <ThemedText variant="h1">SIMULATION</ThemedText>
-      </View>
-
-      <ThemedText variant="caption" color="textMuted">Configure parameters and run consumption simulation</ThemedText>
+      <AnimatedSection delay={0}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.sm }}>
+          <Pressable onPress={() => router.back()} style={{ padding: spacing.xs }}>
+            <Ionicons name="close" size={24} color={colors.text} />
+          </Pressable>
+          <ThemedText variant="h1">SIMULATION</ThemedText>
+        </View>
+        <ThemedText variant="caption" color="textMuted">Configure parameters and run consumption simulation</ThemedText>
+      </AnimatedSection>
 
       {/* Parameters */}
-      <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, padding: spacing.md }}>
-        <SectionHeader title="PARAMETERS" dense />
-        <View style={{ flexDirection: 'row', gap: spacing.md }}>
-          <View style={{ flex: 1 }}>
-            <FormField label="CREW SIZE" value={crew} onChangeText={setCrew} icon="people" keyboardType="numeric" placeholder="1-20" />
+      <AnimatedSection delay={50}>
+        <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, padding: spacing.md }}>
+          <SectionHeader title="PARAMETERS" dense />
+          <View style={{ flexDirection: 'row', gap: spacing.md }}>
+            <View style={{ flex: 1 }}>
+              <FormField label="CREW SIZE" value={crew} onChangeText={setCrew} icon="people" keyboardType="numeric" placeholder="1-20" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <FormField label="DURATION (DAYS)" value={days} onChangeText={setDays} icon="calendar" keyboardType="numeric" placeholder="1-90" />
+            </View>
           </View>
-          <View style={{ flex: 1 }}>
-            <FormField label="DURATION (DAYS)" value={days} onChangeText={setDays} icon="calendar" keyboardType="numeric" placeholder="1-90" />
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.sm }}>
+            <ThemedText variant="caption" color="textMuted">Active events: {config.activeEvents.length}</ThemedText>
+            <ThemedText variant="caption" color="primary" onPress={() => router.push('/(tabs)/settings')}>CONFIGURE</ThemedText>
           </View>
         </View>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.sm }}>
-          <ThemedText variant="caption" color="textMuted">Active events: {config.activeEvents.length}</ThemedText>
-          <ThemedText variant="caption" color="primary" onPress={() => router.push('/(tabs)/settings')}>CONFIGURE</ThemedText>
-        </View>
-      </View>
+      </AnimatedSection>
 
       {/* Run Button */}
-      <Pressable
-        onPress={runSimulation}
-        disabled={running}
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: spacing.md,
-          backgroundColor: running ? colors.surfaceAlt : colors.primary,
-          paddingVertical: spacing.md,
-          borderRadius: 5,
-        }}
-      >
-        <Ionicons name={running ? 'sync' : 'play'} size={18} color={running ? colors.textMuted : '#000'} />
-        <ThemedText variant="body" style={{ color: running ? colors.textMuted : '#000', fontWeight: '700' }}>
-          {running ? `RUNNING... ${progress}%` : 'RUN SIMULATION'}
-        </ThemedText>
-      </Pressable>
+      <AnimatedSection delay={100}>
+        <Pressable
+          onPress={runSimulation}
+          disabled={running}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: spacing.md,
+            backgroundColor: running ? colors.surfaceAlt : colors.primary,
+            paddingVertical: spacing.md,
+            borderRadius: 5,
+          }}
+        >
+          <Ionicons name={running ? 'sync' : 'play'} size={18} color={running ? colors.textMuted : '#000'} />
+          <ThemedText variant="body" style={{ color: running ? colors.textMuted : '#000', fontWeight: '700' }}>
+            {running ? `RUNNING... ${progress}%` : 'RUN SIMULATION'}
+          </ThemedText>
+        </Pressable>
+      </AnimatedSection>
 
       {/* Progress */}
       {running && (
-        <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, padding: spacing.md }}>
-          <ThemedText variant="label" color="textMuted">PROGRESS</ThemedText>
-          <View style={{ height: 6, backgroundColor: colors.surfaceAlt, borderRadius: 3, marginTop: spacing.sm, overflow: 'hidden' }}>
-            <View style={{ width: `${progress}%`, height: '100%', backgroundColor: colors.primary, borderRadius: 3 }} />
+        <AnimatedSection delay={0}>
+          <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, padding: spacing.md }}>
+            <ThemedText variant="label" color="textMuted">PROGRESS</ThemedText>
+            <View style={{ height: 6, backgroundColor: colors.surfaceAlt, borderRadius: 3, marginTop: spacing.sm, overflow: 'hidden' }}>
+              <View style={{ width: `${progress}%`, height: '100%', backgroundColor: colors.primary, borderRadius: 3 }} />
+            </View>
+            <ThemedText variant="caption" color="textMuted" style={{ marginTop: spacing.xs }}>
+              Simulating day {Math.round((progress / 100) * parseInt(days || '1', 10))} of {days}...
+            </ThemedText>
           </View>
-          <ThemedText variant="caption" color="textMuted" style={{ marginTop: spacing.xs }}>
-            Simulating day {Math.round((progress / 100) * parseInt(days || '1', 10))} of {days}...
-          </ThemedText>
-        </View>
+        </AnimatedSection>
       )}
 
       {/* Results */}
       {results && !running && (
-        <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, padding: spacing.md }}>
-          <SectionHeader title={`FINAL STATE - DAY ${results.day}`} dense />
-          {[
-            { label: 'H2O (WATER)', value: results.water, unit: 'L', color: colors.chart.water },
-            { label: 'PWR (ENERGY)', value: results.energy, unit: 'kWh', color: colors.chart.energy },
-            { label: 'O2 (OXYGEN)', value: results.oxygen, unit: 'kg', color: colors.chart.oxygen },
-            { label: 'FOOD', value: results.food, unit: 'kg', color: colors.chart.food },
-          ].map((item) => (
-            <View key={item.label} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-              <ThemedText variant="label" color="textMuted">{item.label}</ThemedText>
-              <ThemedText variant="data" style={{ color: item.color }}>
-                {item.value.toFixed(1)}
-                <ThemedText variant="caption" color="textMuted"> {item.unit}</ThemedText>
-              </ThemedText>
-            </View>
-          ))}
-        </View>
+        <AnimatedSection delay={0}>
+          <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, padding: spacing.md }}>
+            <SectionHeader title={`FINAL STATE - DAY ${results.day}`} dense />
+            {[
+              { label: 'H2O (WATER)', value: results.water, unit: 'L', color: colors.chart.water },
+              { label: 'PWR (ENERGY)', value: results.energy, unit: 'kWh', color: colors.chart.energy },
+              { label: 'O2 (OXYGEN)', value: results.oxygen, unit: 'kg', color: colors.chart.oxygen },
+              { label: 'FOOD', value: results.food, unit: 'kg', color: colors.chart.food },
+            ].map((item) => (
+              <View key={item.label} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+                <ThemedText variant="label" color="textMuted">{item.label}</ThemedText>
+                <ThemedText variant="data" style={{ color: item.color }}>
+                  {item.value.toFixed(1)}
+                  <ThemedText variant="caption" color="textMuted"> {item.unit}</ThemedText>
+                </ThemedText>
+              </View>
+            ))}
+          </View>
+        </AnimatedSection>
       )}
 
-      <PrimaryButton title="BACK" onPress={() => router.back()} variant="ghost" />
+      <AnimatedSection delay={150}>
+        <PrimaryButton title="BACK" onPress={() => router.back()} variant="ghost" />
+      </AnimatedSection>
     </ScrollView>
   );
 }

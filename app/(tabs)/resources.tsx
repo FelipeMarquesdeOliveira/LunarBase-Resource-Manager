@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { FlatList, StyleSheet, View, Pressable } from 'react-native';
+import { FlatList, View, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { useResources } from '@/context/ResourcesContext';
-import { ResourceCard, ThemedText } from '@/components';
+import { AnimatedCard, AnimatedPressable, ResourceCard, ThemedText } from '@/components';
 import { spacing } from '@/theme/spacing';
 import type { ResourceKind } from '@/types';
 
@@ -26,59 +26,67 @@ export default function ResourcesScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={{ padding: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-        <ThemedText variant="h1">RESOURCES</ThemedText>
-        <ThemedText variant="caption" color="textMuted">{resources.length} ACTIVE // {filtered.length} DISPLAYED</ThemedText>
-      </View>
+      <AnimatedCard delay={0}>
+        <View style={{ padding: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+          <ThemedText variant="h1">RESOURCES</ThemedText>
+          <ThemedText variant="caption" color="textMuted">{resources.length} ACTIVE // {filtered.length} DISPLAYED</ThemedText>
+        </View>
+      </AnimatedCard>
 
-      <View style={{ flexDirection: 'row', gap: spacing.xs, padding: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-        {FILTERS.map((f) => (
-          <Pressable
-            key={f.value}
-            onPress={() => setFilter(f.value)}
+      <AnimatedCard delay={50}>
+        <View style={{ flexDirection: 'row', gap: spacing.xs, padding: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+          {FILTERS.map((f, i) => (
+            <AnimatedPressable
+              key={f.value}
+              onPress={() => setFilter(f.value)}
+              style={{
+                paddingHorizontal: spacing.md,
+                paddingVertical: spacing.xs,
+                borderRadius: 3,
+                backgroundColor: filter === f.value ? colors.primary : colors.surface,
+                borderWidth: 1,
+                borderColor: filter === f.value ? colors.primary : colors.border,
+              }}
+            >
+              <ThemedText
+                variant="label"
+                style={{ color: filter === f.value ? '#000' : colors.textMuted }}
+              >
+                {f.label}
+              </ThemedText>
+            </AnimatedPressable>
+          ))}
+          <View style={{ flex: 1 }} />
+          <AnimatedPressable
+            onPress={() => router.push('/resource/new')}
             style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 4,
               paddingHorizontal: spacing.md,
               paddingVertical: spacing.xs,
               borderRadius: 3,
-              backgroundColor: filter === f.value ? colors.primary : colors.surface,
+              backgroundColor: colors.surfaceAlt,
               borderWidth: 1,
-              borderColor: filter === f.value ? colors.primary : colors.border,
+              borderColor: colors.border,
             }}
           >
-            <ThemedText
-              variant="label"
-              style={{ color: filter === f.value ? '#000' : colors.textMuted }}
-            >
-              {f.label}
-            </ThemedText>
-          </Pressable>
-        ))}
-        <View style={{ flex: 1 }} />
-        <Pressable
-          onPress={() => router.push('/resource/new')}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 4,
-            paddingHorizontal: spacing.md,
-            paddingVertical: spacing.xs,
-            borderRadius: 3,
-            backgroundColor: colors.surfaceAlt,
-            borderWidth: 1,
-            borderColor: colors.border,
-          }}
-        >
-          <Ionicons name="add" size={14} color={colors.text} />
-          <ThemedText variant="label" color="textMuted">ADD</ThemedText>
-        </Pressable>
-      </View>
+            <Ionicons name="add" size={14} color={colors.text} />
+            <ThemedText variant="label" color="textMuted">ADD</ThemedText>
+          </AnimatedPressable>
+        </View>
+      </AnimatedCard>
 
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ padding: spacing.md, gap: spacing.sm, paddingBottom: spacing.xxl }}
         showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => <ResourceCard resource={item} onPress={() => router.push(`/resource/${item.id}`)} />}
+        renderItem={({ item, index }) => (
+          <AnimatedCard delay={100 + index * 60}>
+            <ResourceCard resource={item} onPress={() => router.push(`/resource/${item.id}`)} />
+          </AnimatedCard>
+        )}
         ListEmptyComponent={
           <View style={{ alignItems: 'center', padding: spacing.xl }}>
             <Ionicons name="alert-circle-outline" size={40} color={colors.textDim} />
@@ -91,4 +99,3 @@ export default function ResourcesScreen() {
     </View>
   );
 }
-

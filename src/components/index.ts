@@ -8,3 +8,4 @@ export { EventCard } from './EventCard';
 export { SectionHeader } from './SectionHeader';
 export { FormField } from './FormField';
 export { PrimaryButton } from './PrimaryButton';
+export { AnimatedCard, AnimatedPressable, useScreenAnimation } from './AnimatedCard';

@@ -1,7 +1,9 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { StyleSheet, View, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, withSequence, withDelay } from 'react-native-reanimated';
+import { useIsFocused } from '@react-navigation/native';
 import { useTheme } from '@/context/ThemeContext';
 import { ThemedText, ThemedView } from '@/components';
 import { spacing } from '@/theme/spacing';
@@ -9,55 +11,93 @@ import { spacing } from '@/theme/spacing';
 export default function HomeScreen() {
   const { colors } = useTheme();
   const router = useRouter();
-  const [countdown, setCountdown] = useState(3);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isFocused = useIsFocused();
+
+  const indicatorScale = useSharedValue(1);
+  const titleOpacity = useSharedValue(0);
+  const titleTranslate = useSharedValue(20);
+  const contentOpacity = useSharedValue(0);
+  const contentTranslate = useSharedValue(15);
+  const btnOpacity = useSharedValue(0);
+  const btnTranslate = useSharedValue(10);
 
   useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      setCountdown((c) => {
-        if (c <= 1) {
-          if (intervalRef.current) clearInterval(intervalRef.current);
-          return 0;
-        }
-        return c - 1;
-      });
-    }, 800);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
+    if (isFocused) {
+      indicatorScale.value = withSequence(
+        withSpring(1.3, { damping: 10, stiffness: 200 }),
+        withSpring(1, { damping: 15, stiffness: 180 })
+      );
+      titleOpacity.value = withDelay(100, withSpring(1, { damping: 18, stiffness: 150 }));
+      titleTranslate.value = withDelay(100, withSpring(0, { damping: 18, stiffness: 150 }));
+      contentOpacity.value = withDelay(300, withSpring(1, { damping: 18, stiffness: 150 }));
+      contentTranslate.value = withDelay(300, withSpring(0, { damping: 18, stiffness: 150 }));
+      btnOpacity.value = withDelay(600, withSpring(1, { damping: 18, stiffness: 150 }));
+      btnTranslate.value = withDelay(600, withSpring(0, { damping: 18, stiffness: 150 }));
+    } else {
+      indicatorScale.value = 1;
+      titleOpacity.value = 0;
+      titleTranslate.value = 20;
+      contentOpacity.value = 0;
+      contentTranslate.value = 15;
+      btnOpacity.value = 0;
+      btnTranslate.value = 10;
+    }
+  }, [isFocused]);
+
+  const indicatorStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: indicatorScale.value }],
+  }));
+
+  const titleStyle = useAnimatedStyle(() => ({
+    opacity: titleOpacity.value,
+    transform: [{ translateY: titleTranslate.value }],
+  }));
+
+  const contentStyle = useAnimatedStyle(() => ({
+    opacity: contentOpacity.value,
+    transform: [{ translateY: contentTranslate.value }],
+  }));
+
+  const btnStyle = useAnimatedStyle(() => ({
+    opacity: btnOpacity.value,
+    transform: [{ translateY: btnTranslate.value }],
+  }));
 
   return (
     <ThemedView variant="background" style={styles.container}>
       <View style={styles.content}>
-        <View style={styles.statusRow}>
+        <Animated.View style={[styles.statusRow, indicatorStyle]}>
           <View style={[styles.indicator, { backgroundColor: colors.success }]} />
           <ThemedText variant="label" color="textMuted">SYSTEM ONLINE</ThemedText>
-        </View>
+        </Animated.View>
 
-        <ThemedText variant="h1" style={{ fontSize: 28, letterSpacing: 4 }}>LUNARBASE</ThemedText>
-        <ThemedText variant="label" color="textMuted" style={{ letterSpacing: 2 }}>RESOURCE MANAGEMENT SYSTEM</ThemedText>
+        <Animated.View style={titleStyle}>
+          <ThemedText variant="h1" style={{ fontSize: 28, letterSpacing: 4 }}>LUNARBASE</ThemedText>
+          <ThemedText variant="label" color="textMuted" style={{ letterSpacing: 2 }}>RESOURCE MANAGEMENT SYSTEM</ThemedText>
+        </Animated.View>
 
-        <View style={[styles.divider, { backgroundColor: colors.border }]} />
+        <Animated.View style={[styles.divider, { backgroundColor: colors.border }]} />
 
-        <View style={styles.dataGrid}>
-          <View style={styles.dataItem}>
-            <ThemedText variant="label" color="textMuted">BASE</ThemedText>
-            <ThemedText variant="mono" style={{ color: colors.primary }}>ALPHA-01</ThemedText>
+        <Animated.View style={contentStyle}>
+          <View style={styles.dataGrid}>
+            <View style={styles.dataItem}>
+              <ThemedText variant="label" color="textMuted">BASE</ThemedText>
+              <ThemedText variant="mono" style={{ color: colors.primary }}>ALPHA-01</ThemedText>
+            </View>
+            <View style={styles.dataItem}>
+              <ThemedText variant="label" color="textMuted">STATUS</ThemedText>
+              <ThemedText variant="mono" style={{ color: colors.success }}>NOMINAL</ThemedText>
+            </View>
+            <View style={styles.dataItem}>
+              <ThemedText variant="label" color="textMuted">CREW</ThemedText>
+              <ThemedText variant="mono">04</ThemedText>
+            </View>
+            <View style={styles.dataItem}>
+              <ThemedText variant="label" color="textMuted">DAY</ThemedText>
+              <ThemedText variant="mono">147</ThemedText>
+            </View>
           </View>
-          <View style={styles.dataItem}>
-            <ThemedText variant="label" color="textMuted">STATUS</ThemedText>
-            <ThemedText variant="mono" style={{ color: colors.success }}>NOMINAL</ThemedText>
-          </View>
-          <View style={styles.dataItem}>
-            <ThemedText variant="label" color="textMuted">CREW</ThemedText>
-            <ThemedText variant="mono">04</ThemedText>
-          </View>
-          <View style={styles.dataItem}>
-            <ThemedText variant="label" color="textMuted">DAY</ThemedText>
-            <ThemedText variant="mono">{countdown > 0 ? countdown : '--'}</ThemedText>
-          </View>
-        </View>
+        </Animated.View>
       </View>
 
       <Pressable
@@ -70,8 +110,10 @@ export default function HomeScreen() {
           },
         ]}
       >
-        <ThemedText variant="label" style={{ color: '#000' }}>ENTER SYSTEM</ThemedText>
-        <Ionicons name="arrow-forward" size={16} color="#000" />
+        <Animated.View style={btnStyle}>
+          <ThemedText variant="label" style={{ color: '#000' }}>ENTER SYSTEM</ThemedText>
+          <Ionicons name="arrow-forward" size={16} color="#000" />
+        </Animated.View>
       </Pressable>
     </ThemedView>
   );

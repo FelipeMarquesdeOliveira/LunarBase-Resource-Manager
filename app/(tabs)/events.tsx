@@ -2,9 +2,19 @@ import { FlatList, View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { useSimulation } from '@/context/SimulationContext';
-import { EventCard, ThemedText } from '@/components';
+import { AnimatedCard, EventCard, ThemedText } from '@/components';
 import { spacing } from '@/theme/spacing';
 import { sampleEvents } from '@/data/mockData';
+
+const styles = StyleSheet.create({
+  counterBox: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    borderWidth: 1,
+    borderRadius: 5,
+  },
+});
 
 export default function EventsScreen() {
   const { colors } = useTheme();
@@ -17,32 +27,40 @@ export default function EventsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={{ padding: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-        <ThemedText variant="h1">EVENTS</ThemedText>
-        <ThemedText variant="caption" color="textMuted">{filtered.length} ACTIVE // {config.activeEvents.length} CONFIGURED</ThemedText>
-      </View>
+      <AnimatedCard delay={0}>
+        <View style={{ padding: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+          <ThemedText variant="h1">EVENTS</ThemedText>
+          <ThemedText variant="caption" color="textMuted">{filtered.length} ACTIVE // {config.activeEvents.length} CONFIGURED</ThemedText>
+        </View>
+      </AnimatedCard>
 
-      <View style={{ flexDirection: 'row', gap: spacing.sm, padding: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-        <View style={[styles.counterBox, { backgroundColor: colors.danger + '22', borderColor: colors.danger + '44' }]}>
-          <ThemedText variant="data" style={{ color: colors.danger }}>{highCount}</ThemedText>
-          <ThemedText variant="label" color="textMuted">HIGH</ThemedText>
+      <AnimatedCard delay={50}>
+        <View style={{ flexDirection: 'row', gap: spacing.sm, padding: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+          <View style={[styles.counterBox, { backgroundColor: colors.danger + '22', borderColor: colors.danger + '44' }]}>
+            <ThemedText variant="data" style={{ color: colors.danger }}>{highCount}</ThemedText>
+            <ThemedText variant="label" color="textMuted">HIGH</ThemedText>
+          </View>
+          <View style={[styles.counterBox, { backgroundColor: colors.warning + '22', borderColor: colors.warning + '44' }]}>
+            <ThemedText variant="data" style={{ color: colors.warning }}>{medCount}</ThemedText>
+            <ThemedText variant="label" color="textMuted">MED</ThemedText>
+          </View>
+          <View style={[styles.counterBox, { backgroundColor: colors.success + '22', borderColor: colors.success + '44' }]}>
+            <ThemedText variant="data" style={{ color: colors.success }}>{lowCount}</ThemedText>
+            <ThemedText variant="label" color="textMuted">LOW</ThemedText>
+          </View>
         </View>
-        <View style={[styles.counterBox, { backgroundColor: colors.warning + '22', borderColor: colors.warning + '44' }]}>
-          <ThemedText variant="data" style={{ color: colors.warning }}>{medCount}</ThemedText>
-          <ThemedText variant="label" color="textMuted">MED</ThemedText>
-        </View>
-        <View style={[styles.counterBox, { backgroundColor: colors.success + '22', borderColor: colors.success + '44' }]}>
-          <ThemedText variant="data" style={{ color: colors.success }}>{lowCount}</ThemedText>
-          <ThemedText variant="label" color="textMuted">LOW</ThemedText>
-        </View>
-      </View>
+      </AnimatedCard>
 
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ padding: spacing.md, gap: spacing.sm, paddingBottom: spacing.xxl }}
         showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => <EventCard event={item} />}
+        renderItem={({ item, index }) => (
+          <AnimatedCard delay={100 + index * 70}>
+            <EventCard event={item} />
+          </AnimatedCard>
+        )}
         ListEmptyComponent={
           <View style={{ alignItems: 'center', padding: spacing.xl }}>
             <Ionicons name="calendar-outline" size={40} color={colors.textDim} />
@@ -55,13 +73,3 @@ export default function EventsScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  counterBox: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-    borderWidth: 1,
-    borderRadius: 5,
-  },
-});
