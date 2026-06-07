@@ -62,15 +62,45 @@ LunarBase-Resource-Manager/
 
 ## Screens
 
-1. **Home** - Tela inicial com animacao de entrada
-2. **Dashboard** - Command center interativo com mission clock, alertas, widgets de recursos, grafico de tendencias e quick actions
-3. **Resources** - Lista de recursos com filtros (ALL, H2O, PWR, O2, FOOD) e botao ADD
-4. **Events** - Lista de eventos lunares com contadores de severidade
-5. **Settings** - Theme mode, eventos de simulacao, navegacao e acoes de reset
-6. **Resource Detail** - Metricas, grafico de historico, botoes de ajuste (+-1, +-10)
-7. **New Resource** - Formulario com validacao para adicionar recursos
-8. **Simulation** - Configura tripulacao e dias, executa simulacao de consumo
-9. **Space Data** - Dados reais da NASA APOD API (Astronomy Picture of the Day)
+### Home / Splash
+Tela inicial com animacao de entrada, status da base e botao "Enter System".
+
+<!-- ![Home](assets/screenshots/home.png) -->
+
+### Dashboard — Command Center
+Mission clock, status da missão (dia, tripulação, recursos ativos) e widgets interativos de ajuste rápido por recurso.
+
+![Dashboard](assets/screenshots/dashboard.png)
+
+### Recursos
+Lista de todos os recursos vitais com filtros por tipo (ALL, H2O, PWR, O2, FOOD), métricas de autonomia e consumo diário.
+
+![Recursos](assets/screenshots/recursos.png)
+
+### Eventos
+Painel de eventos lunares (EVA, tempestade solar, reabastecimento, manutenção) com contadores de severidade HIGH / MED / LOW.
+
+![Eventos](assets/screenshots/eventos.png)
+
+### Ajustes / Settings
+Controle de tema (Auto / Light / Dark), toggles de eventos de simulação e acesso rápido à Simulation.
+
+![Ajustes](assets/screenshots/ajustes.png)
+
+### Detalhe de Recurso
+Métricas detalhadas (current, max, autonomia, consumo diário), gráfico de tendência 7 dias e botões de ajuste (−10 / −1 / +1 / +10).
+
+![Detalhe de Recurso](assets/screenshots/detalhe-recurso.png)
+
+### Novo Recurso
+Formulário completo com seleção de tipo (H2O / PWR / O2 / FOOD), campos validados e botão SAVE.
+
+<!-- ![Novo Recurso](assets/screenshots/novo-recurso.png) -->
+
+### Simulação
+Configuração de tripulação e duração em dias, execução de simulação de consumo com eventos aleatórios.
+
+![Simulação](assets/screenshots/simulacao.png)
 
 ## Instalacao e Execucao
 
