@@ -1,12 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ScrollView, View, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring, withDelay } from 'react-native-reanimated';
-import { useIsFocused } from '@react-navigation/native';
 import { useTheme } from '@/context/ThemeContext';
 import { useResources } from '@/context/ResourcesContext';
-import { ThemedText, FormField, SectionHeader, PrimaryButton } from '@/components';
+import { ThemedText, FormField, SectionHeader, PrimaryButton, AnimatedCard } from '@/components';
 import { spacing } from '@/theme/spacing';
 import type { ResourceKind, FormErrors } from '@/types';
 
@@ -16,31 +14,6 @@ const KINDS: { label: string; value: ResourceKind; color: string }[] = [
   { label: 'O2', value: 'oxygen', color: '#2ECC71' },
   { label: 'FOOD', value: 'food', color: '#9B59B6' },
 ];
-
-function AnimatedSection({ children, delay = 0, style }: { children: React.ReactNode; delay?: number; style?: any }) {
-  const isFocused = useIsFocused();
-  const opacity = useSharedValue(0);
-  const translateY = useSharedValue(10);
-
-  useEffect(() => {
-    if (isFocused) {
-      opacity.value = withDelay(delay, withSpring(1, { damping: 18, stiffness: 180 }));
-      translateY.value = withDelay(delay, withSpring(0, { damping: 18, stiffness: 180 }));
-    } else {
-      opacity.value = 0;
-      translateY.value = 10;
-    }
-  }, [isFocused]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ translateY: translateY.value }],
-  }));
-
-  return <Animated.View style={[animatedStyle, style]}>{children}</Animated.View>;
-}
-
-import { useEffect } from 'react';
 
 export default function NewResourceScreen() {
   const { colors } = useTheme();
@@ -94,17 +67,17 @@ export default function NewResourceScreen() {
       contentContainerStyle={{ padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl }}
     >
       {/* Header */}
-      <AnimatedSection delay={0}>
+      <AnimatedCard delay={0}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.sm }}>
           <Pressable onPress={() => router.back()} style={{ padding: spacing.xs }}>
             <Ionicons name="close" size={24} color={colors.text} />
           </Pressable>
           <ThemedText variant="h1">NEW RESOURCE</ThemedText>
         </View>
-      </AnimatedSection>
+      </AnimatedCard>
 
       {/* Kind Selector */}
-      <AnimatedSection delay={50}>
+      <AnimatedCard delay={50}>
         <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, padding: spacing.md }}>
           <ThemedText variant="label" color="textMuted" style={{ marginBottom: spacing.sm }}>RESOURCE TYPE</ThemedText>
           <View style={{ flexDirection: 'row', gap: spacing.sm }}>
@@ -128,10 +101,10 @@ export default function NewResourceScreen() {
             ))}
           </View>
         </View>
-      </AnimatedSection>
+      </AnimatedCard>
 
       {/* Form */}
-      <AnimatedSection delay={100}>
+      <AnimatedCard delay={100}>
         <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, padding: spacing.md }}>
           <SectionHeader title="RESOURCE DATA" dense />
           <View style={{ gap: spacing.md }}>
@@ -149,15 +122,15 @@ export default function NewResourceScreen() {
             <FormField label="SOURCE / ORIGIN" value={source} onChangeText={setSource} error={errors.source} icon="location" placeholder="e.g. ECLSS Module A" />
           </View>
         </View>
-      </AnimatedSection>
+      </AnimatedCard>
 
       {/* Actions */}
-      <AnimatedSection delay={150}>
+      <AnimatedCard delay={150}>
         <View style={{ flexDirection: 'row', gap: spacing.sm }}>
           <PrimaryButton title="CANCEL" onPress={() => router.back()} variant="secondary" fullWidth />
           <PrimaryButton title="SAVE" onPress={handleSubmit} variant="primary" fullWidth icon={<Ionicons name="checkmark" size={16} color="#000" />} />
         </View>
-      </AnimatedSection>
+      </AnimatedCard>
     </ScrollView>
   );
 }

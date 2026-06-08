@@ -63,45 +63,23 @@ LunarBase-Resource-Manager/
 
 ## Screens
 
-### Home / Splash
-Tela inicial com animacao de entrada, status da base e botao "Enter System".
-
-<!-- ![Home](assets/screenshots/home.png) -->
-
-### Dashboard — Command Center
-Mission clock, status da missão (dia, tripulação, recursos ativos) e widgets interativos de ajuste rápido por recurso.
-
-<img src="assets/screenshots/dashboard.png" width="280" />
-
-### Recursos
-Lista de todos os recursos vitais com filtros por tipo (ALL, H2O, PWR, O2, FOOD), métricas de autonomia e consumo diário.
-
-<img src="assets/screenshots/recursos.png" width="280" />
-
-### Eventos
-Painel de eventos lunares (EVA, tempestade solar, reabastecimento, manutenção) com contadores de severidade HIGH / MED / LOW.
-
-<img src="assets/screenshots/eventos.png" width="280" />
-
-### Ajustes / Settings
-Controle de tema (Auto / Light / Dark), toggles de eventos de simulação e acesso rápido à Simulation.
-
-<img src="assets/screenshots/ajustes.png" width="280" />
-
-### Detalhe de Recurso
-Métricas detalhadas (current, max, autonomia, consumo diário), gráfico de tendência 7 dias e botões de ajuste (−10 / −1 / +1 / +10).
-
-<img src="assets/screenshots/detalhe-recurso.png" width="280" />
-
-### Novo Recurso
-Formulário completo com seleção de tipo (H2O / PWR / O2 / FOOD), campos validados e botão SAVE.
-
-<!-- ![Novo Recurso](assets/screenshots/novo-recurso.png) -->
-
-### Simulação
-Configuração de tripulação e duração em dias, execução de simulação de consumo com eventos aleatórios.
-
-<img src="assets/screenshots/simulacao.png" width="280" />
+<table>
+<tr>
+<td align="center"><strong>Home / Splash</strong><br/><img src="assets/screenshots/home.png" width="220"/><br/>Título dramático, status da base e botão Enter System</td>
+<td align="center"><strong>Dashboard</strong><br/><img src="assets/screenshots/dashboard.png" width="220"/><br/>Command Center com dia de missão, recursos e ajuste rápido</td>
+<td align="center"><strong>Recursos</strong><br/><img src="assets/screenshots/recursos.png" width="220"/><br/>Lista com filtros por tipo, autonomia e consumo diário</td>
+</tr>
+<tr>
+<td align="center"><strong>Eventos</strong><br/><img src="assets/screenshots/eventos.png" width="220"/><br/>Log de missão: EVA, tempestades, reabastecimento e alertas</td>
+<td align="center"><strong>Detalhe de Recurso</strong><br/><img src="assets/screenshots/detalhe-recurso.png" width="220"/><br/>Número em destaque, histórico 7 dias e botões de ajuste</td>
+<td align="center"><strong>Novo Recurso</strong><br/><img src="assets/screenshots/novo-recurso.png" width="220"/><br/>Formulário com seleção de tipo e validação de campos</td>
+</tr>
+<tr>
+<td align="center"><strong>Simulação</strong><br/><img src="assets/screenshots/simulacao.png" width="220"/><br/>Projeção dia-a-dia com crew, duração e impactos ambientais</td>
+<td align="center"><strong>Ajustes</strong><br/><img src="assets/screenshots/ajustes.png" width="220"/><br/>Tema, toggles de eventos, SOA web services e reset de dados</td>
+<td></td>
+</tr>
+</table>
 
 ## Instalacao e Execucao
 

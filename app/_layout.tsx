@@ -60,14 +60,7 @@ function RootLayoutInner() {
             animationDuration: 300,
           }}
         />
-        <Stack.Screen
-          name="space"
-          options={{
-            headerShown: false,
-            animation: 'slide_from_right',
-            animationDuration: 250,
-          }}
-        />
+
       </Stack>
     </>
   );

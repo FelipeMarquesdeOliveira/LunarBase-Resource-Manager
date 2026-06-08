@@ -10,19 +10,19 @@ interface Props {
 }
 
 const iconMap: Record<BaseEvent['kind'], keyof typeof Ionicons.glyphMap> = {
-  eva: 'walk',
-  'solar-storm': 'thunderstorm',
-  supply: 'rocket',
-  maintenance: 'construct',
-  alert: 'warning',
+  eva: 'walk-outline',
+  'solar-storm': 'thunderstorm-outline',
+  supply: 'rocket-outline',
+  maintenance: 'construct-outline',
+  alert: 'warning-outline',
 };
 
 const labelMap: Record<BaseEvent['kind'], string> = {
   eva: 'EVA',
-  'solar-storm': 'STORM',
-  supply: 'SUPPLY',
-  maintenance: 'MAINT',
-  alert: 'ALERT',
+  'solar-storm': 'Storm',
+  supply: 'Supply',
+  maintenance: 'Maintenance',
+  alert: 'Alert',
 };
 
 const severityColor: Record<BaseEvent['severity'], 'success' | 'warning' | 'danger'> = {
@@ -36,36 +36,27 @@ export function EventCard({ event }: Props) {
   const tone = colors[severityColor[event.severity]];
 
   return (
-    <View
-      style={{
-        backgroundColor: colors.surface,
-        borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: 5,
-        padding: spacing.md,
-        marginBottom: spacing.sm,
-      }}
-    >
+    <View style={{ paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+      {/* Header: colored icon + label + day */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs }}>
-        <Ionicons name={iconMap[event.kind]} size={16} color={tone} />
-        <ThemedText variant="label" style={{ color: tone }}>
-          {labelMap[event.kind]}
+        <View style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: tone + '18', alignItems: 'center', justifyContent: 'center' }}>
+          <Ionicons name={iconMap[event.kind]} size={14} color={tone} />
+        </View>
+        <ThemedText style={{ fontWeight: '700', fontSize: 11, color: tone, letterSpacing: 0.5 }}>
+          {labelMap[event.kind].toUpperCase()}
         </ThemedText>
-        <View style={{ width: 1, height: 12, backgroundColor: colors.border }} />
-        <ThemedText variant="label" color="textMuted">DIA {event.day}</ThemedText>
-        <View style={{ flex: 1 }} />
-        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: tone }} />
+        <ThemedText variant="caption" color="textMuted">· Dia {event.day}</ThemedText>
       </View>
 
-      <ThemedText variant="h3" style={{ marginBottom: spacing.xs }}>{event.title}</ThemedText>
-      <ThemedText variant="caption" color="textMuted" style={{ lineHeight: 16 }}>{event.description}</ThemedText>
+      <ThemedText style={{ fontWeight: '700', fontSize: 15, marginBottom: 4 }}>{event.title}</ThemedText>
+      <ThemedText variant="caption" color="textMuted" style={{ lineHeight: 17 }}>{event.description}</ThemedText>
 
       {Object.keys(event.impact).length > 0 && (
-        <View style={{ flexDirection: 'row', gap: spacing.lg, marginTop: spacing.sm, paddingTop: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border }}>
+        <View style={{ flexDirection: 'row', gap: spacing.xl, marginTop: spacing.sm }}>
           {Object.entries(event.impact).map(([k, v]) => (
             <View key={k}>
-              <ThemedText variant="label" color="textMuted">{k.toUpperCase()}</ThemedText>
-              <ThemedText variant="mono" style={{ color: (v ?? 0) >= 0 ? colors.success : colors.danger }}>
+              <ThemedText variant="caption" color="textMuted">{k}</ThemedText>
+              <ThemedText style={{ fontWeight: '700', fontSize: 13, color: (v ?? 0) >= 0 ? colors.success : colors.danger }}>
                 {(v ?? 0) >= 0 ? '+' : ''}{v?.toFixed(1)}
               </ThemedText>
             </View>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FlatList, View, Pressable } from 'react-native';
+import { FlatList, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
@@ -9,11 +9,11 @@ import { spacing } from '@/theme/spacing';
 import type { ResourceKind } from '@/types';
 
 const FILTERS: { label: string; value: ResourceKind | 'all' }[] = [
-  { label: 'ALL', value: 'all' },
-  { label: 'H2O', value: 'water' },
-  { label: 'PWR', value: 'energy' },
-  { label: 'O2', value: 'oxygen' },
-  { label: 'FOOD', value: 'food' },
+  { label: 'All', value: 'all' },
+  { label: 'Water', value: 'water' },
+  { label: 'Energy', value: 'energy' },
+  { label: 'Oxygen', value: 'oxygen' },
+  { label: 'Food', value: 'food' },
 ];
 
 export default function ResourcesScreen() {
@@ -26,72 +26,70 @@ export default function ResourcesScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
+      {/* Header */}
       <AnimatedCard delay={0}>
-        <View style={{ padding: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-          <ThemedText variant="h1">RESOURCES</ThemedText>
-          <ThemedText variant="caption" color="textMuted">{resources.length} ACTIVE // {filtered.length} DISPLAYED</ThemedText>
+        <View style={{ paddingHorizontal: spacing.md, paddingTop: spacing.lg, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+            <View>
+              <ThemedText variant="caption" color="textMuted" style={{ letterSpacing: 2 }}>INVENTORY</ThemedText>
+              <ThemedText style={{ fontSize: 28, fontWeight: '800', letterSpacing: -0.5 }}>Resources</ThemedText>
+            </View>
+            <AnimatedPressable
+              onPress={() => router.push('/resource/new')}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: spacing.xs,
+                paddingHorizontal: spacing.md,
+                paddingVertical: spacing.sm,
+                borderRadius: 6,
+                backgroundColor: colors.primary,
+              }}
+            >
+              <Ionicons name="add" size={16} color="#000" />
+              <ThemedText style={{ color: '#000', fontWeight: '700', fontSize: 13 }}>Add</ThemedText>
+            </AnimatedPressable>
+          </View>
         </View>
       </AnimatedCard>
 
+      {/* Filter chips */}
       <AnimatedCard delay={50}>
-        <View style={{ flexDirection: 'row', gap: spacing.xs, padding: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-          {FILTERS.map((f, i) => (
+        <View style={{ flexDirection: 'row', gap: spacing.xs, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+          {FILTERS.map((f) => (
             <AnimatedPressable
               key={f.value}
               onPress={() => setFilter(f.value)}
               style={{
                 paddingHorizontal: spacing.md,
                 paddingVertical: spacing.xs,
-                borderRadius: 3,
-                backgroundColor: filter === f.value ? colors.primary : colors.surface,
-                borderWidth: 1,
-                borderColor: filter === f.value ? colors.primary : colors.border,
+                borderRadius: 20,
+                backgroundColor: filter === f.value ? colors.primary : 'transparent',
               }}
             >
-              <ThemedText
-                variant="label"
-                style={{ color: filter === f.value ? '#000' : colors.textMuted }}
-              >
+              <ThemedText style={{ fontSize: 13, fontWeight: '600', color: filter === f.value ? '#000' : colors.textMuted }}>
                 {f.label}
               </ThemedText>
             </AnimatedPressable>
           ))}
-          <View style={{ flex: 1 }} />
-          <AnimatedPressable
-            onPress={() => router.push('/resource/new')}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 4,
-              paddingHorizontal: spacing.md,
-              paddingVertical: spacing.xs,
-              borderRadius: 3,
-              backgroundColor: colors.surfaceAlt,
-              borderWidth: 1,
-              borderColor: colors.border,
-            }}
-          >
-            <Ionicons name="add" size={14} color={colors.text} />
-            <ThemedText variant="label" color="textMuted">ADD</ThemedText>
-          </AnimatedPressable>
         </View>
       </AnimatedCard>
 
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: spacing.md, gap: spacing.sm, paddingBottom: spacing.xxl }}
+        contentContainerStyle={{ paddingHorizontal: spacing.md, paddingBottom: spacing.xxl }}
         showsVerticalScrollIndicator={false}
         renderItem={({ item, index }) => (
-          <AnimatedCard delay={100 + index * 60}>
+          <AnimatedCard delay={100 + index * 50}>
             <ResourceCard resource={item} onPress={() => router.push(`/resource/${item.id}`)} />
           </AnimatedCard>
         )}
         ListEmptyComponent={
-          <View style={{ alignItems: 'center', padding: spacing.xl }}>
-            <Ionicons name="alert-circle-outline" size={40} color={colors.textDim} />
+          <View style={{ alignItems: 'center', paddingTop: spacing.xxl }}>
+            <Ionicons name="alert-circle-outline" size={36} color={colors.textDim} />
             <ThemedText variant="caption" color="textMuted" style={{ marginTop: spacing.md }}>
-              NO RESOURCES MATCH FILTER
+              No resources match this filter
             </ThemedText>
           </View>
         }

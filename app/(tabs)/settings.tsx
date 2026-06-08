@@ -1,5 +1,6 @@
-import { ScrollView, Switch, View, Pressable } from 'react-native';
+import { ScrollView, Switch, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { useResources } from '@/context/ResourcesContext';
 import { useSimulation } from '@/context/SimulationContext';
@@ -17,9 +18,9 @@ const EVENT_LABELS: Record<EventKind, string> = {
 };
 
 const THEME_OPTIONS = [
-  { key: 'system', label: 'AUTO' },
-  { key: 'light', label: 'LIGHT' },
-  { key: 'dark', label: 'DARK' },
+  { key: 'system', label: 'Auto' },
+  { key: 'light', label: 'Light' },
+  { key: 'dark', label: 'Dark' },
 ] as const;
 
 export default function SettingsScreen() {
@@ -29,24 +30,25 @@ export default function SettingsScreen() {
   const { apiUrl, isOnline, checkConnection } = useApi();
   const router = useRouter();
 
+  const s = (delay: number) => ({ delay });
+
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ padding: spacing.md, gap: spacing.lg, paddingBottom: spacing.xxl }}
+      contentContainerStyle={{ paddingBottom: spacing.xxl }}
+      showsVerticalScrollIndicator={false}
     >
-      <AnimatedCard delay={0}>
-        <ThemedText variant="h1">SETTINGS</ThemedText>
-      </AnimatedCard>
+      {/* Header — no card, just typography */}
+      <View style={{ paddingHorizontal: spacing.md, paddingTop: spacing.lg, paddingBottom: spacing.xl, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+        <ThemedText variant="caption" color="textMuted" style={{ letterSpacing: 2, marginBottom: 4 }}>LUNARBASE</ThemedText>
+        <ThemedText style={{ fontSize: 30, fontWeight: '800', letterSpacing: -0.5 }}>Settings</ThemedText>
+      </View>
 
-      {/* Theme Section */}
-      <AnimatedCard delay={50}>
-        <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, overflow: 'hidden' }}>
-          <View style={{ padding: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-            <ThemedText variant="label" color="textMuted">DISPLAY</ThemedText>
-          </View>
-
-          <View style={{ padding: spacing.md }}>
-            <ThemedText variant="body" style={{ marginBottom: spacing.sm }}>Theme Mode</ThemedText>
+      <View style={{ paddingHorizontal: spacing.md, paddingTop: spacing.lg, gap: spacing.xxl }}>
+        {/* Display */}
+        <AnimatedCard delay={40}>
+          <View>
+            <ThemedText variant="caption" color="textMuted" style={{ letterSpacing: 2, marginBottom: spacing.md }}>DISPLAY</ThemedText>
             <View style={{ flexDirection: 'row', gap: spacing.xs }}>
               {THEME_OPTIONS.map((opt) => (
                 <AnimatedPressable
@@ -54,151 +56,163 @@ export default function SettingsScreen() {
                   onPress={() => setPreference(opt.key)}
                   style={{
                     flex: 1,
-                    paddingVertical: spacing.sm,
+                    paddingVertical: spacing.sm + 2,
                     alignItems: 'center',
-                    borderRadius: 3,
-                    backgroundColor: preference === opt.key ? colors.primary : colors.surfaceAlt,
+                    borderRadius: 6,
+                    backgroundColor: preference === opt.key ? colors.primary : colors.surface,
                     borderWidth: 1,
                     borderColor: preference === opt.key ? colors.primary : colors.border,
                   }}
                 >
-                  <ThemedText variant="label" style={{ color: preference === opt.key ? '#000' : colors.textMuted }}>
+                  <ThemedText
+                    style={{
+                      fontSize: 13,
+                      fontWeight: '600',
+                      color: preference === opt.key ? '#000' : colors.textMuted,
+                    }}
+                  >
                     {opt.label}
                   </ThemedText>
                 </AnimatedPressable>
               ))}
             </View>
           </View>
-        </View>
-      </AnimatedCard>
+        </AnimatedCard>
 
-      {/* Events Section */}
-      <AnimatedCard delay={100}>
-        <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, overflow: 'hidden' }}>
-          <View style={{ padding: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-            <ThemedText variant="label" color="textMuted">SIMULATION EVENTS</ThemedText>
-          </View>
-          {(Object.keys(EVENT_LABELS) as EventKind[]).map((kind, i) => (
-            <View
-              key={kind}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: spacing.md,
-                borderBottomWidth: i < Object.keys(EVENT_LABELS).length - 1 ? 1 : 0,
-                borderBottomColor: colors.border,
-              }}
-            >
-              <ThemedText variant="body">{EVENT_LABELS[kind]}</ThemedText>
-              <Switch
-                value={config.activeEvents.includes(kind)}
-                onValueChange={() => toggleEvent(kind)}
-                trackColor={{ true: colors.primary, false: colors.surfaceAlt }}
-                thumbColor="#fff"
-              />
+        {/* Simulation Events */}
+        <AnimatedCard delay={90}>
+          <View>
+            <ThemedText variant="caption" color="textMuted" style={{ letterSpacing: 2, marginBottom: spacing.md }}>SIMULATION EVENTS</ThemedText>
+            <View style={{ backgroundColor: colors.surface, borderRadius: 6, overflow: 'hidden' }}>
+              {(Object.keys(EVENT_LABELS) as EventKind[]).map((kind, i, arr) => (
+                <View
+                  key={kind}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    paddingHorizontal: spacing.md,
+                    paddingVertical: spacing.sm + 2,
+                    borderBottomWidth: i < arr.length - 1 ? 1 : 0,
+                    borderBottomColor: colors.border,
+                  }}
+                >
+                  <ThemedText style={{ fontSize: 14 }}>{EVENT_LABELS[kind]}</ThemedText>
+                  <Switch
+                    value={config.activeEvents.includes(kind)}
+                    onValueChange={() => toggleEvent(kind)}
+                    trackColor={{ true: colors.primary, false: colors.surfaceAlt }}
+                    thumbColor="#fff"
+                  />
+                </View>
+              ))}
             </View>
-          ))}
-        </View>
-      </AnimatedCard>
-
-      {/* API / SOA Integration */}
-      <AnimatedCard delay={150}>
-        <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, overflow: 'hidden' }}>
-          <View style={{ padding: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-            <ThemedText variant="label" color="textMuted">SOA WEB SERVICES</ThemedText>
           </View>
-          <View style={{ padding: spacing.md }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm }}>
-              <ThemedText variant="body">API Connection</ThemedText>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: isOnline ? colors.success : colors.danger }} />
-                <ThemedText variant="caption" style={{ color: isOnline ? colors.success : colors.danger }}>
-                  {isOnline ? 'ONLINE' : 'OFFLINE'}
-                </ThemedText>
+        </AnimatedCard>
+
+        {/* SOA Web Services */}
+        <AnimatedCard delay={140}>
+          <View>
+            <ThemedText variant="caption" color="textMuted" style={{ letterSpacing: 2, marginBottom: spacing.md }}>SOA WEB SERVICES</ThemedText>
+            <View style={{ backgroundColor: colors.surface, borderRadius: 6, padding: spacing.md, gap: spacing.md }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View>
+                  <ThemedText style={{ fontSize: 14, fontWeight: '600' }}>API Connection</ThemedText>
+                  <ThemedText variant="caption" color="textMuted">{apiUrl}</ThemedText>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: isOnline ? colors.success : colors.danger }} />
+                  <ThemedText style={{ color: isOnline ? colors.success : colors.danger, fontSize: 12, fontWeight: '700' }}>
+                    {isOnline ? 'ONLINE' : 'OFFLINE'}
+                  </ThemedText>
+                </View>
               </View>
-            </View>
-            <ThemedText variant="caption" color="textMuted">URL: {apiUrl}</ThemedText>
-            <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md }}>
               <AnimatedPressable
                 onPress={checkConnection}
                 style={{
-                  flex: 1,
-                  paddingVertical: spacing.sm,
+                  paddingVertical: spacing.sm + 2,
                   alignItems: 'center',
-                  borderRadius: 3,
+                  borderRadius: 6,
                   backgroundColor: colors.primary,
                 }}
               >
-                <ThemedText variant="label" style={{ color: '#000' }}>TEST CONNECTION</ThemedText>
+                <ThemedText style={{ color: '#000', fontWeight: '700', fontSize: 13 }}>Test Connection</ThemedText>
+              </AnimatedPressable>
+              <ThemedText variant="caption" color="textMuted">
+                ResourceService · EventService · SpaceIntegration
+              </ThemedText>
+            </View>
+          </View>
+        </AnimatedCard>
+
+        {/* Navigation */}
+        <AnimatedCard delay={180}>
+          <View>
+            <ThemedText variant="caption" color="textMuted" style={{ letterSpacing: 2, marginBottom: spacing.md }}>NAVIGATION</ThemedText>
+            <View style={{ backgroundColor: colors.surface, borderRadius: 6, overflow: 'hidden' }}>
+              <AnimatedPressable
+                onPress={() => router.push('/simulation')}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: spacing.sm,
+                  paddingHorizontal: spacing.md,
+                  paddingVertical: spacing.md,
+                }}
+              >
+                <Ionicons name="play-circle-outline" size={20} color={colors.primary} />
+                <ThemedText style={{ fontSize: 14 }}>Simulation</ThemedText>
+                <View style={{ flex: 1 }} />
+                <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
               </AnimatedPressable>
             </View>
-            <ThemedText variant="caption" color="textMuted" style={{ marginTop: spacing.sm }}>
-              SOA Services: ResourceService (5001), EventService (5003), SpaceIntegration (5005)
-            </ThemedText>
           </View>
-        </View>
-      </AnimatedCard>
+        </AnimatedCard>
 
-      {/* Navigation */}
-      <AnimatedCard delay={200}>
-        <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, overflow: 'hidden' }}>
-          <View style={{ padding: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-            <ThemedText variant="label" color="textMuted">NAVIGATION</ThemedText>
+        {/* Data actions */}
+        <AnimatedCard delay={220}>
+          <View>
+            <ThemedText variant="caption" color="textMuted" style={{ letterSpacing: 2, marginBottom: spacing.md }}>DATA</ThemedText>
+            <View style={{ backgroundColor: colors.surface, borderRadius: 6, overflow: 'hidden' }}>
+              <AnimatedPressable
+                onPress={resetToDefault}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: spacing.sm,
+                  paddingHorizontal: spacing.md,
+                  paddingVertical: spacing.md,
+                  borderBottomWidth: 1,
+                  borderBottomColor: colors.border,
+                }}
+              >
+                <Ionicons name="refresh-outline" size={18} color={colors.warning} />
+                <ThemedText style={{ color: colors.warning, fontSize: 14 }}>Reset Resources</ThemedText>
+              </AnimatedPressable>
+              <AnimatedPressable
+                onPress={reset}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: spacing.sm,
+                  paddingHorizontal: spacing.md,
+                  paddingVertical: spacing.md,
+                }}
+              >
+                <Ionicons name="refresh-outline" size={18} color={colors.warning} />
+                <ThemedText style={{ color: colors.warning, fontSize: 14 }}>Reset Simulation</ThemedText>
+              </AnimatedPressable>
+            </View>
           </View>
-          <AnimatedPressable
-            onPress={() => router.push('/simulation')}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: spacing.md,
-            }}
-          >
-            <ThemedText variant="body">Simulation</ThemedText>
-            <ThemedText variant="caption" color="textMuted">CONFIGURE & RUN</ThemedText>
-          </AnimatedPressable>
-        </View>
-      </AnimatedCard>
+        </AnimatedCard>
 
-      {/* Actions */}
-      <AnimatedCard delay={250}>
-        <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, overflow: 'hidden' }}>
-          <View style={{ padding: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-            <ThemedText variant="label" color="textMuted">DATA ACTIONS</ThemedText>
-          </View>
-          <AnimatedPressable
-            onPress={resetToDefault}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: spacing.md,
-              borderBottomWidth: 1,
-              borderBottomColor: colors.border,
-            }}
-          >
-            <ThemedText variant="body" color="warning">Reset Resources</ThemedText>
-          </AnimatedPressable>
-          <AnimatedPressable
-            onPress={reset}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: spacing.md,
-            }}
-          >
-            <ThemedText variant="body" color="warning">Reset Simulation</ThemedText>
-          </AnimatedPressable>
-        </View>
-      </AnimatedCard>
-
-      <AnimatedCard delay={300}>
-        <ThemedText variant="caption" color="textDim" align="center" style={{ marginTop: spacing.md }}>
-          LUNARBASE MANAGER v0.1.0{'\n'}GLOBAL SOLUTION 2026.1 - FIAP
-        </ThemedText>
-      </AnimatedCard>
+        {/* Footer */}
+        <AnimatedCard delay={280}>
+          <ThemedText variant="caption" color="textDim" align="center">
+            LunarBase Manager v0.1.0{'\n'}Global Solution 2026.1 · FIAP
+          </ThemedText>
+        </AnimatedCard>
+      </View>
     </ScrollView>
   );
 }

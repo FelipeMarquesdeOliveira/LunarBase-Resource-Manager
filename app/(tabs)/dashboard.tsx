@@ -1,16 +1,14 @@
-import { useState, useEffect, useCallback } from 'react';
-import { ScrollView, StyleSheet, View, Pressable } from 'react-native';
+import { useState, useEffect } from 'react';
+import { ScrollView, View, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useIsFocused } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { useTheme } from '@/context/ThemeContext';
 import { useResources } from '@/context/ResourcesContext';
 import { useResourceStats } from '@/hooks/useResourceStats';
 import { useSpaceWeather } from '@/context/SpaceWeatherContext';
-import { SectionHeader, ThemedText, CriticalityBadge } from '@/components';
+import { ThemedText, AnimatedCard } from '@/components';
 import { spacing } from '@/theme/spacing';
-import { classify, kindLabel } from '@/utils/criticality';
+import { classify, autonomyDays } from '@/utils/criticality';
 import { formatNumber } from '@/utils/format';
 import { dailyHistoryMock } from '@/data/mockData';
 import { LineChart } from 'react-native-chart-kit';
@@ -19,78 +17,39 @@ import { Dimensions } from 'react-native';
 const W = Dimensions.get('window').width;
 
 const kindColor: Record<string, string> = {
-  water: '#3498DB',
+  water: '#4A9EFF',
   energy: '#E8A838',
   oxygen: '#2ECC71',
-  food: '#9B59B6',
+  food: '#A78BFA',
 };
 
 const kindIcon: Record<string, keyof typeof Ionicons.glyphMap> = {
-  water: 'water',
-  energy: 'flash',
+  water: 'water-outline',
+  energy: 'flash-outline',
   oxygen: 'cloud-outline',
-  food: 'restaurant',
+  food: 'restaurant-outline',
 };
-
-function AnimatedCard({ children, onPress, delay = 0 }: { children: React.ReactNode; onPress?: () => void; delay?: number }) {
-  const isFocused = useIsFocused();
-  const scale = useSharedValue(0.9);
-  const opacity = useSharedValue(0);
-
-  const triggerAnimation = useCallback(() => {
-    scale.value = 0.9;
-    opacity.value = 0;
-    const timeout = setTimeout(() => {
-      scale.value = withSpring(1, { damping: 18, stiffness: 180 });
-      opacity.value = withSpring(1, { damping: 18, stiffness: 180 });
-    }, delay);
-    return () => clearTimeout(timeout);
-  }, [delay]);
-
-  useEffect(() => {
-    if (isFocused) {
-      return triggerAnimation();
-    } else {
-      scale.value = 0.9;
-      opacity.value = 0;
-    }
-  }, [isFocused, triggerAnimation]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: opacity.value,
-  }));
-
-  return (
-    <Pressable onPress={onPress}>
-      <Animated.View style={animatedStyle}>{children}</Animated.View>
-    </Pressable>
-  );
-}
 
 export default function DashboardScreen() {
   const { colors } = useTheme();
   const { resources, adjustResource } = useResources();
   const { overall, reorderList } = useResourceStats(resources);
-  const { data: sw, getAlertMessage } = useSpaceWeather();
+  const { data: sw } = useSpaceWeather();
   const router = useRouter();
   const [missionDay, setMissionDay] = useState(147);
 
   useEffect(() => {
-    const id = setInterval(() => {
-      setMissionDay((d) => d + 1);
-    }, 10000);
+    const id = setInterval(() => setMissionDay((d) => d + 1), 10000);
     return () => clearInterval(id);
   }, []);
 
-  const overallLabel = overall === 'safe' ? 'NOMINAL' : overall === 'attention' ? 'ATTENTION' : overall === 'critical' ? 'CRITICAL' : 'FAILURE';
-  const overallTone: 'success' | 'warning' | 'danger' = overall === 'safe' ? 'success' : overall === 'attention' ? 'warning' : 'danger';
+  const overallTone = overall === 'safe' ? colors.success : overall === 'attention' ? colors.warning : colors.danger;
 
   const chartData = {
     labels: dailyHistoryMock.slice(-5).map((d) => `D${d.day}`),
     datasets: [
-      { data: dailyHistoryMock.slice(-5).map((d) => d.water), color: () => colors.chart.water, strokeWidth: 1.5 },
-      { data: dailyHistoryMock.slice(-5).map((d) => d.energy), color: () => colors.chart.energy, strokeWidth: 1.5 },
+      { data: dailyHistoryMock.slice(-5).map((d) => d.water), color: () => kindColor.water, strokeWidth: 1.5 },
+      { data: dailyHistoryMock.slice(-5).map((d) => d.energy), color: () => kindColor.energy, strokeWidth: 1.5 },
     ],
     legend: ['H2O', 'PWR'],
   };
@@ -98,307 +57,181 @@ export default function DashboardScreen() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl }}
+      contentContainerStyle={{ paddingBottom: spacing.xxl }}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <ThemedText variant="label" color="textMuted">LUNAR BASE ALPHA</ThemedText>
-          <ThemedText variant="h1">COMMAND CENTER</ThemedText>
-        </View>
-        <CriticalityBadge level={overall} />
-      </View>
-
-      {/* Mission Clock */}
-      <AnimatedCard delay={0}>
-        <View style={[styles.missionClock, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <View style={styles.clockLeft}>
-            <Ionicons name="time" size={20} color={colors.primary} />
-            <View>
-              <ThemedText variant="label" color="textMuted">MISSION DAY</ThemedText>
-              <ThemedText variant="dataLarge" style={{ color: colors.primary }}>#{missionDay}</ThemedText>
-            </View>
-          </View>
-          <View style={styles.clockRight}>
-            <View style={[styles.clockIndicator, { backgroundColor: colors.success }]} />
-            <ThemedText variant="body" style={{ color: colors.success }}>SYSTEMS ONLINE</ThemedText>
+      {/* Hero */}
+      <View style={{ paddingHorizontal: spacing.md, paddingTop: spacing.lg, paddingBottom: spacing.lg, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+        <ThemedText variant="caption" color="textMuted" style={{ letterSpacing: 2 }}>LUNAR BASE ALPHA</ThemedText>
+        <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 4 }}>
+          <ThemedText style={{ fontSize: 28, fontWeight: '800', letterSpacing: -0.5 }}>Command Center</ThemedText>
+          <View style={{ alignItems: 'flex-end' }}>
+            <ThemedText style={{ fontSize: 42, fontWeight: '900', color: colors.primary, lineHeight: 44 }}>{missionDay}</ThemedText>
+            <ThemedText variant="caption" color="textMuted">mission day</ThemedText>
           </View>
         </View>
-      </AnimatedCard>
 
-      {/* Space Weather Panel */}
-      <AnimatedCard delay={50}>
-        <View style={[styles.spacePanel, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <View style={styles.spacePanelHeader}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-              <Ionicons name="planet" size={18} color={colors.secondary} />
-              <ThemedText variant="label" color="textMuted">SPACE WEATHER</ThemedText>
-            </View>
-            {sw.asteroidAlert && (
-              <View style={[styles.asteroidBadge, { backgroundColor: colors.danger + '22' }]}>
-                <Ionicons name="alert-circle" size={14} color={colors.danger} />
-                <ThemedText variant="caption" style={{ color: colors.danger }}>ASTEROID ALERT</ThemedText>
-              </View>
-            )}
-          </View>
-          <View style={styles.spacePanelGrid}>
-            <View style={styles.spacePanelItem}>
-              <ThemedText variant="label" color="textMuted">SOLAR</ThemedText>
-              <ThemedText variant="data" style={{ color: sw.solarActivity === 'extreme' ? colors.danger : sw.solarActivity === 'high' ? colors.warning : colors.success }}>{sw.solarActivity.toUpperCase()}</ThemedText>
-            </View>
-            <View style={styles.spacePanelItem}>
-              <ThemedText variant="label" color="textMuted">MARS</ThemedText>
-              <ThemedText variant="data" style={{ color: colors.text }}>{sw.marsTemperature}C</ThemedText>
-            </View>
-            <View style={styles.spacePanelItem}>
-              <ThemedText variant="label" color="textMuted">NEOS</ThemedText>
-              <ThemedText variant="data" style={{ color: sw.asteroidAlert ? colors.danger : colors.text }}>{sw.asteroidCount}</ThemedText>
-            </View>
-            <View style={styles.spacePanelItem}>
-              <ThemedText variant="label" color="textMuted">ENERGY IMPACT</ThemedText>
-              <ThemedText variant="data" style={{ color: sw.solarFlareRisk > 0.2 ? colors.danger : colors.warning }}>-{(sw.solarFlareRisk * 100).toFixed(0)}%</ThemedText>
-            </View>
-          </View>
-          {getAlertMessage() && (
-            <View style={[styles.alertMsg, { backgroundColor: colors.warning + '18', borderColor: colors.warning + '44' }]}>
-              <Ionicons name="warning" size={14} color={colors.warning} />
-              <ThemedText variant="caption" style={{ color: colors.warning, flex: 1 }}>{getAlertMessage()}</ThemedText>
-            </View>
+        {/* Status line */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm }}>
+          <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: overallTone }} />
+          <ThemedText style={{ fontSize: 12, fontWeight: '600', color: overallTone }}>
+            {overall === 'safe' ? 'All systems nominal' : `${reorderList.length} resource${reorderList.length > 1 ? 's' : ''} need attention`}
+          </ThemedText>
+          {reorderList.length > 0 && (
+            <ThemedText variant="caption" color="textMuted" style={{ flex: 1 }} numberOfLines={1}>
+              · {reorderList.map(r => r.resource.name).join(', ')}
+            </ThemedText>
           )}
         </View>
-      </AnimatedCard>
+      </View>
 
-      {/* Alert Banner */}
-      {reorderList.length > 0 && (
-        <AnimatedCard delay={100}>
-          <View style={[styles.alertBanner, { backgroundColor: colors.warning + '18', borderColor: colors.warning + '44' }]}>
-            <Ionicons name="warning" size={20} color={colors.warning} />
-            <View style={{ flex: 1 }}>
-              <ThemedText variant="h3" style={{ color: colors.warning }}>{reorderList.length} RESOURCE{reorderList.length > 1 ? 'S' : ''} NEED ATTENTION</ThemedText>
-              <ThemedText variant="caption" color="textMuted">
-                {reorderList.map((r) => r.resource.name).join(', ')}
-              </ThemedText>
+      <View style={{ paddingHorizontal: spacing.md, paddingTop: spacing.lg, gap: spacing.xl }}>
+        {/* Resources */}
+        <AnimatedCard delay={0}>
+          <View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.md }}>
+              <ThemedText variant="caption" color="textMuted" style={{ letterSpacing: 2 }}>RESOURCES</ThemedText>
+              <Pressable onPress={() => router.push('/(tabs)/resources')}>
+                <ThemedText variant="caption" style={{ color: colors.primary }}>see all →</ThemedText>
+              </Pressable>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.warning} />
-          </View>
-        </AnimatedCard>
-      )}
 
-      {/* Quick Stats */}
-      <View style={styles.statsRow}>
-        <AnimatedCard delay={100}>
-          <View style={[styles.statBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <ThemedText variant="label" color="textMuted">STATUS</ThemedText>
-            <ThemedText variant="data" style={{ color: colors[overallTone] }}>{overallLabel}</ThemedText>
+            {resources.map((r, i) => {
+              const crit = classify(r);
+              const ratio = r.capacity > 0 ? r.current / r.capacity : 0;
+              const autonomy = autonomyDays(r);
+              const tone = kindColor[r.kind];
+              const isWarning = crit === 'attention' || crit === 'critical' || crit === 'failure';
+              return (
+                <AnimatedCard key={r.id} delay={40 + i * 40} onPress={() => router.push(`/resource/${r.id}`)}>
+                  <View style={{ paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.xs }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                        <View style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: tone + '18', alignItems: 'center', justifyContent: 'center' }}>
+                          <Ionicons name={kindIcon[r.kind]} size={14} color={tone} />
+                        </View>
+                        <ThemedText style={{ fontWeight: '600', fontSize: 14 }}>{r.name}</ThemedText>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 3 }}>
+                        <ThemedText style={{ fontSize: 22, fontWeight: '800', lineHeight: 24, color: isWarning ? colors.warning : tone }}>
+                          {formatNumber(r.current, 0)}
+                        </ThemedText>
+                        <ThemedText variant="caption" color="textMuted" style={{ marginBottom: 2 }}>{r.unit}</ThemedText>
+                      </View>
+                    </View>
+                    <View style={{ height: 2, backgroundColor: colors.surfaceAlt, borderRadius: 1, marginBottom: spacing.xs }}>
+                      <View style={{ width: `${Math.min(ratio * 100, 100)}%`, height: '100%', borderRadius: 1, backgroundColor: isWarning ? colors.warning : tone }} />
+                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                      <ThemedText variant="caption" color="textMuted">
+                        {Number.isFinite(autonomy) ? `${autonomy.toFixed(0)}d left` : '—'}
+                      </ThemedText>
+                      <View style={{ flexDirection: 'row', gap: spacing.xs }}>
+                        {[-5, +5].map((delta) => (
+                          <Pressable
+                            key={delta}
+                            onPress={(e) => { e.stopPropagation(); adjustResource(r.id, delta); }}
+                            style={({ pressed }) => ({
+                              paddingHorizontal: spacing.sm,
+                              paddingVertical: 3,
+                              borderRadius: 4,
+                              backgroundColor: pressed
+                                ? colors.surfaceAlt
+                                : delta < 0 ? colors.danger + '15' : colors.success + '15',
+                            })}
+                          >
+                            <ThemedText style={{ fontSize: 11, fontWeight: '700', color: delta < 0 ? colors.danger : colors.success }}>
+                              {delta > 0 ? '+' : ''}{delta}
+                            </ThemedText>
+                          </Pressable>
+                        ))}
+                      </View>
+                    </View>
+                  </View>
+                </AnimatedCard>
+              );
+            })}
           </View>
         </AnimatedCard>
-        <AnimatedCard delay={150}>
-          <View style={[styles.statBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <ThemedText variant="label" color="textMuted">CREW</ThemedText>
-            <ThemedText variant="data">4/4</ThemedText>
+
+        {/* ENV info — inline, no box */}
+        <AnimatedCard delay={240}>
+          <View>
+            <ThemedText variant="caption" color="textMuted" style={{ letterSpacing: 2, marginBottom: spacing.sm }}>ENVIRONMENT</ThemedText>
+            <View style={{ flexDirection: 'row', gap: spacing.xl }}>
+              <View>
+                <ThemedText variant="caption" color="textMuted">solar</ThemedText>
+                <ThemedText style={{ fontWeight: '700', fontSize: 15, color: sw.solarActivity === 'extreme' ? colors.danger : sw.solarActivity === 'high' ? colors.warning : colors.text }}>
+                  {sw.solarActivity}
+                </ThemedText>
+              </View>
+              <View>
+                <ThemedText variant="caption" color="textMuted">surface temp</ThemedText>
+                <ThemedText style={{ fontWeight: '700', fontSize: 15 }}>{sw.marsTemperature}°C</ThemedText>
+              </View>
+              <View>
+                <ThemedText variant="caption" color="textMuted">energy loss</ThemedText>
+                <ThemedText style={{ fontWeight: '700', fontSize: 15 }}>−{(sw.solarFlareRisk * 100).toFixed(0)}%</ThemedText>
+              </View>
+            </View>
           </View>
         </AnimatedCard>
-        <AnimatedCard delay={200}>
-          <View style={[styles.statBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <ThemedText variant="label" color="textMuted">ACTIVE</ThemedText>
-            <ThemedText variant="data">{resources.length}</ThemedText>
+
+        {/* Chart */}
+        <AnimatedCard delay={300}>
+          <View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.sm }}>
+              <ThemedText variant="caption" color="textMuted" style={{ letterSpacing: 2 }}>5-DAY TREND</ThemedText>
+              <ThemedText variant="caption" color="textMuted">H2O · PWR</ThemedText>
+            </View>
+            <LineChart
+              data={chartData}
+              width={W - spacing.md * 2}
+              height={110}
+              chartConfig={{
+                backgroundColor: colors.background,
+                backgroundGradientFrom: colors.background,
+                backgroundGradientTo: colors.background,
+                decimalPlaces: 0,
+                color: () => colors.primary,
+                labelColor: () => colors.textMuted,
+                propsForBackgroundLines: { stroke: colors.chart.grid, strokeDasharray: '' },
+                propsForLabels: { fontSize: 10 },
+              }}
+              bezier={false}
+              style={{ marginLeft: -spacing.sm }}
+            />
+          </View>
+        </AnimatedCard>
+
+        {/* Actions */}
+        <AnimatedCard delay={380}>
+          <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+            <Pressable
+              onPress={() => router.push('/simulation')}
+              style={({ pressed }) => ({
+                flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+                gap: spacing.sm, paddingVertical: spacing.md, borderRadius: 6,
+                backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1,
+              })}
+            >
+              <Ionicons name="options-outline" size={16} color="#000" />
+              <ThemedText style={{ color: '#000', fontWeight: '700', fontSize: 13 }}>Simulation</ThemedText>
+            </Pressable>
+            <Pressable
+              onPress={() => router.push('/(tabs)/events')}
+              style={({ pressed }) => ({
+                flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+                gap: spacing.sm, paddingVertical: spacing.md, borderRadius: 6,
+                borderWidth: 1, borderColor: colors.border, opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <Ionicons name="calendar-outline" size={16} color={colors.text} />
+              <ThemedText style={{ fontWeight: '600', fontSize: 13 }}>Events</ThemedText>
+            </Pressable>
           </View>
         </AnimatedCard>
       </View>
-
-      {/* Interactive Resource Widgets */}
-      <SectionHeader title="RESOURCE STATUS" subtitle="TAP TO ADJUST" />
-      {resources.map((r, i) => {
-        const crit = classify(r);
-        const ratio = r.capacity > 0 ? r.current / r.capacity : 0;
-        const tone = kindColor[r.kind];
-        return (
-          <AnimatedCard key={r.id} delay={250 + i * 50} onPress={() => router.push(`/resource/${r.id}`)}>
-            <View style={[styles.resourceWidget, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <View style={styles.widgetHeader}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                  <View style={[styles.widgetIcon, { backgroundColor: tone + '22' }]}>
-                    <Ionicons name={kindIcon[r.kind]} size={16} color={tone} />
-                  </View>
-                  <ThemedText variant="h3">{r.name}</ThemedText>
-                </View>
-                <CriticalityBadge level={crit} size="sm" />
-              </View>
-
-              <View style={styles.widgetMetrics}>
-                <View>
-                  <ThemedText variant="label" color="textMuted">CURRENT</ThemedText>
-                  <ThemedText variant="data" style={{ color: tone }}>{formatNumber(r.current, 0)}</ThemedText>
-                </View>
-                <View>
-                  <ThemedText variant="label" color="textMuted">MAX</ThemedText>
-                  <ThemedText variant="body">{formatNumber(r.capacity, 0)} {r.unit}</ThemedText>
-                </View>
-                <View>
-                  <ThemedText variant="label" color="textMuted">DAILY</ThemedText>
-                  <ThemedText variant="body">{r.dailyConsumption} {r.unit}</ThemedText>
-                </View>
-              </View>
-
-              <View style={{ height: 4, backgroundColor: colors.surfaceAlt, borderRadius: 2, marginBottom: spacing.sm }}>
-                <View style={{ width: `${ratio * 100}%`, height: '100%', borderRadius: 2, backgroundColor: tone }} />
-              </View>
-
-              <View style={styles.widgetActions}>
-                <Pressable
-                  onPress={(e) => { e.stopPropagation(); adjustResource(r.id, -5); }}
-                  style={[styles.widgetBtn, { backgroundColor: colors.danger + '22' }]}
-                >
-                  <Ionicons name="remove" size={14} color={colors.danger} />
-                </Pressable>
-                <Pressable
-                  onPress={(e) => { e.stopPropagation(); adjustResource(r.id, -1); }}
-                  style={[styles.widgetBtn, { backgroundColor: colors.warning + '22' }]}
-                >
-                  <Ionicons name="remove" size={12} color={colors.warning} />
-                </Pressable>
-                <Pressable
-                  onPress={(e) => { e.stopPropagation(); adjustResource(r.id, 1); }}
-                  style={[styles.widgetBtn, { backgroundColor: colors.success + '22' }]}
-                >
-                  <Ionicons name="add" size={12} color={colors.success} />
-                </Pressable>
-                <Pressable
-                  onPress={(e) => { e.stopPropagation(); adjustResource(r.id, 5); }}
-                  style={[styles.widgetBtn, { backgroundColor: colors.primary + '22' }]}
-                >
-                  <Ionicons name="add" size={14} color={colors.primary} />
-                </Pressable>
-              </View>
-            </View>
-          </AnimatedCard>
-        );
-      })}
-
-      {/* Chart */}
-      <AnimatedCard delay={500}>
-        <View style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 5, padding: spacing.md }}>
-          <SectionHeader title="TREND ANALYSIS" subtitle="5-DAY HISTORY" dense />
-          <LineChart
-            data={chartData}
-            width={W - spacing.md * 4}
-            height={140}
-            chartConfig={{
-              backgroundColor: colors.surface,
-              backgroundGradientFrom: colors.surface,
-              backgroundGradientTo: colors.surface,
-              decimalPlaces: 0,
-              color: () => colors.primary,
-              labelColor: () => colors.textMuted,
-              propsForBackgroundLines: { stroke: colors.chart.grid, strokeDasharray: '' },
-              propsForLabels: { fontSize: 10 },
-            }}
-            bezier={false}
-            style={{ marginLeft: -spacing.sm }}
-          />
-        </View>
-      </AnimatedCard>
-
-      {/* Quick Actions */}
-      <AnimatedCard delay={550}>
-        <View style={styles.quickActions}>
-          <Pressable
-            onPress={() => router.push('/simulation')}
-            style={[styles.quickAction, { backgroundColor: colors.surface, borderColor: colors.border }]}
-          >
-            <Ionicons name="options" size={20} color={colors.primary} />
-            <ThemedText variant="label" color="textMuted">SIMULATION</ThemedText>
-          </Pressable>
-          <Pressable
-            onPress={() => router.push('/(tabs)/events')}
-            style={[styles.quickAction, { backgroundColor: colors.surface, borderColor: colors.border }]}
-          >
-            <Ionicons name="alert-circle" size={20} color={colors.warning} />
-            <ThemedText variant="label" color="textMuted">EVENTS</ThemedText>
-          </Pressable>
-          <Pressable
-            onPress={() => router.push('/(tabs)/resources')}
-            style={[styles.quickAction, { backgroundColor: colors.surface, borderColor: colors.border }]}
-          >
-            <Ionicons name="list" size={20} color={colors.text} />
-            <ThemedText variant="label" color="textMuted">ALL RESOURCES</ThemedText>
-          </Pressable>
-          <Pressable
-            onPress={() => router.push('/space')}
-            style={[styles.quickAction, { backgroundColor: colors.surface, borderColor: colors.border }]}
-          >
-            <Ionicons name="globe" size={20} color={colors.secondary} />
-            <ThemedText variant="label" color="textMuted">NASA DATA</ThemedText>
-          </Pressable>
-        </View>
-      </AnimatedCard>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: spacing.md },
-  missionClock: {
-    borderWidth: 1,
-    borderRadius: 5,
-    padding: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  clockLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  clockRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  clockIndicator: { width: 8, height: 8, borderRadius: 4 },
-  spacePanel: {
-    borderWidth: 1,
-    borderRadius: 5,
-    padding: spacing.md,
-  },
-  spacePanelHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
-  asteroidBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: 4 },
-  spacePanelGrid: { flexDirection: 'row', justifyContent: 'space-between' },
-  spacePanelItem: { alignItems: 'center' },
-  alertMsg: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.sm, borderWidth: 1, borderRadius: 4, marginTop: spacing.md },
-  alertBanner: {
-    borderWidth: 1,
-    borderRadius: 5,
-    padding: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  statsRow: { flexDirection: 'row', gap: spacing.sm },
-  statBox: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 5,
-    padding: spacing.md,
-  },
-  resourceWidget: {
-    borderWidth: 1,
-    borderRadius: 5,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  widgetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
-  widgetIcon: { width: 32, height: 32, borderRadius: 4, alignItems: 'center', justifyContent: 'center' },
-  widgetMetrics: { flexDirection: 'row', gap: spacing.xl, marginBottom: spacing.sm },
-  widgetActions: { flexDirection: 'row', gap: spacing.xs, justifyContent: 'flex-end' },
-  widgetBtn: {
-    width: 36,
-    height: 28,
-    borderRadius: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  quickActions: { flexDirection: 'row', gap: spacing.sm },
-  quickAction: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 5,
-    padding: spacing.md,
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-});
